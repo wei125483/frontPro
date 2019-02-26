@@ -6,7 +6,6 @@ export default {
   state: {
     data: {
       list: [],
-      pagination: {},
     },
   },
 
@@ -14,12 +13,7 @@ export default {
     * fetch ({ payload }, { call, put }) {
       const response = yield call(queryShifts, payload);
       const resData = {
-        list: response.data.list || [],
-        pagination: {
-          current: response.data.pageNum || 1,
-          pageSize: response.data.pageSize || 10,
-          total: response.data.total || 0,
-        },
+        list: response.data || [],
       };
       yield put({
         type: 'save',

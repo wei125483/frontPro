@@ -208,7 +208,7 @@ class ShiftsList extends PureComponent {
 
   render () {
     const {
-      shifts: { shifts },
+      shifts: { data },
       loading,
     } = this.props;
     const { modalVisible, addShifList } = this.state;
@@ -222,46 +222,44 @@ class ShiftsList extends PureComponent {
       <div>
         <Card bordered={false}>
           <div className={styles.tableList}>
+            <div className={styles.tableListOperator}>
+              <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
+                新增
+              </Button>
+            </div>
             <div className={styles.cardList}>
               <List
                 rowKey="id"
                 loading={loading}
-                grid={{ gutter: 24, lg: 4, md: 3, sm: 1, xs: 1 }}
+                grid={{ gutter: 24, lg: 5, md: 3, sm: 2, xs: 1 }}
                 justify="space-between"
-                dataSource={[]}
+                dataSource={data.list}
                 renderItem={item =>
-                  item ? (
-                    <List.Item key={item.id}>
-                      <Card className={styles.card}
-                            actions={[<a>删除</a>, <a onClick={() => this.handleModalVisible(true)}>编辑</a>]}>
-                        <Card.Meta
-                          title={<a className={styles.cardTitle}>{item.title}</a>}
-                        />
-                        {
-                          item.members.map((mem) => {
-                            return (<Row gutter={{ md: 8, lg: 24, xl: 48 }} key={mem.id} justify="space-between">
-                              <Col span={8}>{mem.name}</Col>
-                              <Col span={16}>{mem.id}</Col>
-                            </Row>);
-                          })
-                        }
-                        <Row gutter={{ md: 8, lg: 24, xl: 48 }} justify="space-between">
-                          <Col span={8}>模式</Col>
-                          <Col span={16}>重复</Col>
-                          <Col span={8}>应用日期</Col>
-                          <Col span={16}>2018-12-01</Col>
-                          <Col span={8}>状态</Col>
-                          <Col span={16}>开启中</Col>
-                        </Row>
-                      </Card>
-                    </List.Item>
-                  ) : (
-                    <List.Item>
-                      <Button type="dashed" className={styles.newButton} onClick={() => this.handleModalVisible(true)}>
-                        <Icon type="plus"/> 新建班次
-                      </Button>
-                    </List.Item>
-                  )
+                  <List.Item key={item.id}>
+                    <Card className={styles.card}
+                          actions={[<a>删除</a>, <a onClick={() => this.handleModalVisible(true)}>编辑</a>]}>
+                      <Card.Meta title={<div className={styles.cardTitle}>{item.name}</div>}/>
+                      {
+                        JSON.parse(item.shift).map((mem, index) => {
+                          return (<Row key={index} justify="space-between" className={styles.shiftsRow}>
+                            <Col span={8}><strong>{mem.name}</strong></Col>
+                            <Col span={16} className={styles.shiftsRow16}>{mem.startTime + ' - ' + mem.endTime}</Col>
+                          </Row>);
+                        })
+                      }
+                      <Row justify="space-between" className={styles.shiftsRow}>
+                        <Col span={8}>模式</Col>
+                        <Col span={16} className={styles.shiftsRow16}>重复</Col>
+                        <Col span={8}>应用日期</Col>
+                        <Col span={16} className={styles.shiftsRow16}>
+                          <Icon type="calendar" style={{ fontSize: '18px', cursor: 'pointer', color: '#08c' }}/>
+                          <DatePicker style={{ display: 'none' }}/>
+                        </Col>
+                        <Col span={8}>状态</Col>
+                        <Col span={16} className={styles.shiftsRow16}>开</Col>
+                      </Row>
+                    </Card>
+                  </List.Item>
                 }
               />
             </div>

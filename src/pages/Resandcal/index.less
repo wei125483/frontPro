@@ -37,10 +37,20 @@
   }
 }
 
+.shiftsRow {
+  line-height: 30px;
+  .shiftsRow16 {
+    padding-left: 20px;
+  }
+}
+
 .cardList {
   margin-bottom: -24px;
 
   .card {
+    &:hover {
+      box-shadow: 1px 1px 10px #aaa,-1px -1px 10px #aaa;
+    }
     :global {
       .ant-card-meta-title {
         margin-bottom: 12px;

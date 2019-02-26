@@ -9,7 +9,7 @@ import {
   Row,
   Icon,
   Modal,
-  message,
+  InputNumber,
 } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
@@ -52,22 +52,26 @@ const CreateForm = Form.create()(props => {
       <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
         <Col span={12}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具名称">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true, message: '请输入至少五个字符的产品名称！', min: 5 }],
+            {form.getFieldDecorator('name', {
+              rules: [{ required: true, message: '请输入模具名称！' },
+                { max: 20, message: '最长不能超过20字符' }],
             })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具编号">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
+            {form.getFieldDecorator('serialNum', {
+              rules: [{ required: true, message: '请输入模具编号' },
+                { max: 15, message: '最长不能超过15字符' },
+                { pattern: /^\w+$/, message: '请输入字母+数字组合' },
+              ],
             })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
+            {form.getFieldDecorator('productIds', {
+              rules: [{ required: true, message: '请输入产品编号！' }],
             })(
               <Input placeholder="请输入"/>,
             )}
@@ -75,10 +79,10 @@ const CreateForm = Form.create()(props => {
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="穴数">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
+            {form.getFieldDecorator('amount', {
+              rules: [{ required: true, message: '请输入穴数！' }],
             })(
-              <Input placeholder="请输入"/>,
+              <InputNumber max={99} placeholder="请输入" style={{ 'width': '100%' }}/>,
             )}
           </FormItem>
         </Col>
@@ -88,8 +92,8 @@ const CreateForm = Form.create()(props => {
               <div key={index}>
                 <Col span={12}>
                   <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label='产品编号'>
-                    {form.getFieldDecorator('desc' + item.id, {
-                      rules: [{ required: true }],
+                    {form.getFieldDecorator(`productIds${item.id}`, {
+                      rules: [{ required: true, message: '请输入产品编号！' }],
                       initialValue: item.proId || '',
                     })(
                       <Input placeholder="请输入"/>,
@@ -98,13 +102,13 @@ const CreateForm = Form.create()(props => {
                 </Col>
                 <Col span={12}>
                   <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="穴数">
-                    {form.getFieldDecorator('num' + item.id, {
-                      rules: [{ required: true }],
+                    {form.getFieldDecorator(`amount${item.id}`, {
+                      rules: [{ required: true, message: '请输入穴数！' }],
                       initialValue: item.proNum || '',
                     })(
-                      <Input placeholder="请输入"/>,
+                      <InputNumber max={99} placeholder="请输入" style={{ 'width': '100%' }}/>,
                     )}
-                    <Icon className={styles.formIcon} onClick={(e) => onDelMould(index)} type="minus-circle"/>
+                    <Icon className={styles.formIcon} onClick={() => onDelMould(index)} type="minus-circle"/>
                   </FormItem>
                 </Col>
               </div>
@@ -136,6 +140,10 @@ class MouldList extends PureComponent {
     modalVisible: false,
     selectedRows: [],
     modalLenght: [],
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
     formValues: {},
   };
 
@@ -150,31 +158,38 @@ class MouldList extends PureComponent {
     },
     {
       title: '模具编号',
-      dataIndex: 'desc',
+      dataIndex: 'serialNum',
     },
     {
-      title: '模具规格',
+      title: '规格',
       dataIndex: 'callNo',
-      render: val => `${val} 万`,
     },
     {
       title: '产品编号',
-      dataIndex: 'desc1',
+      dataIndex: 'productSerialNum',
+      render: val => {
+        return val.toString();
+      },
     },
     {
       title: '创建时间',
-      dataIndex: 'updatedAt',
+      dataIndex: 'createDate',
     },
     {
       title: '创建人',
-      dataIndex: 'desc2',
+      dataIndex: 'createName',
     },
   ];
 
   componentDidMount () {
     const { dispatch } = this.props;
+    const { pagination } = this.state;
     dispatch({
       type: 'mold/fetch',
+      payload: {
+        pageNum: pagination.current,
+        pageSize: pagination.pageSize,
+      },
     });
   }
 
@@ -252,16 +267,17 @@ class MouldList extends PureComponent {
   };
 
   handleAdd = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'mold/add',
-      payload: {
-        desc: fields.desc,
-      },
-    });
-
-    message.success('添加成功');
-    this.handleModalVisible();
+    console.log(fields);
+    // const { dispatch } = this.props;
+    // dispatch({
+    //   type: 'mold/add',
+    //   payload: {
+    //     desc: fields.desc,
+    //   },
+    // });
+    //
+    // message.success('添加成功');
+    // this.handleModalVisible();
   };
 
   render () {

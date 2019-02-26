@@ -69,29 +69,29 @@ const CreateForm = Form.create()(props => {
       onCancel={() => handleModalVisible()}
     >
       <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备名称">
-        {form.getFieldDecorator('desc', {
-          rules: [{ required: true, message: '请输入至少五个字符的产品名称！', min: 5 }],
+        {form.getFieldDecorator('name', {
+          rules: [{ required: true, message: '请输入设备名称！' }, { min: 15, message: '最长不能超过15字符' }],
         })(<Input placeholder="请输入"/>)}
       </FormItem>
-      <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备编号">
-        {form.getFieldDecorator('desc', {
-          rules: [{ required: true }],
+      <FormItem key="serialNum" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备编号">
+        {form.getFieldDecorator('serialNum', {
+          rules: [{ required: true, message: '请输入设备名称！' }, { min: 10, message: '最长不能超过10字符' }],
         })(<Input placeholder="请输入"/>)}
       </FormItem>
       <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备类型">
-        {form.getFieldDecorator('desc', {
-          rules: [{ required: true }],
+        {form.getFieldDecorator('deviceType', {
+          rules: [{ required: true, message: '请输入设备类型！' }],
         })(
           <Select style={{ width: '100%' }}>
-            <Option value="0">成品</Option>
-            <Option value="1">半成品</Option>
-            <Option value="2">原料</Option>
+            <Option value="1">注塑</Option>
+            <Option value="2">电镀</Option>
+            <Option value="3">组装</Option>
           </Select>,
         )}
       </FormItem>
-      <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="使用模具">
-        {form.getFieldDecorator('desc', {
-          rules: [{ required: true }],
+      <FormItem key="moldIds" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="使用模具">
+        {form.getFieldDecorator('moldIds', {
+          rules: [{ required: true, message: '请输入使用模具！' }],
         })(
           <Transfer
             dataSource={mockData}
@@ -160,7 +160,6 @@ class EquipmentList extends PureComponent {
       title: '操作',
       render: (text, record) => (
         <div>
-          <a onClick={() => console.log(record)}>查看</a>&nbsp;
           <a onClick={() => this.updateModalVisible(record)}>编辑</a>&nbsp;
         </div>
       ),
