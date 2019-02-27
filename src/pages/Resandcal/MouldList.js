@@ -75,6 +75,7 @@ const CreateForm = Form.create()(props => {
             })(
               <Input placeholder="请输入"/>,
             )}
+            <Icon className={styles.formIcon} onClick={() => onAddMould()} type="plus-circle"/>
           </FormItem>
         </Col>
         <Col span={12}>
@@ -98,16 +99,6 @@ const CreateForm = Form.create()(props => {
                     })(
                       <Input placeholder="请输入"/>,
                     )}
-                  </FormItem>
-                </Col>
-                <Col span={12}>
-                  <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="穴数">
-                    {form.getFieldDecorator(`amount${item.id}`, {
-                      rules: [{ required: true, message: '请输入穴数！' }],
-                      initialValue: item.proNum || '',
-                    })(
-                      <InputNumber max={99} placeholder="请输入" style={{ 'width': '100%' }}/>,
-                    )}
                     <Icon className={styles.formIcon} onClick={() => onDelMould(index)} type="minus-circle"/>
                   </FormItem>
                 </Col>
@@ -115,15 +106,6 @@ const CreateForm = Form.create()(props => {
             );
           })
         }
-        <Col span={24}>
-          <Button
-            style={{ width: '100%', marginTop: 16, marginBottom: 8 }}
-            type="dashed"
-            onClick={onAddMould}
-            icon="plus"
-          >新增产品信息
-          </Button>
-        </Col>
       </Row>
     </Modal>
   );

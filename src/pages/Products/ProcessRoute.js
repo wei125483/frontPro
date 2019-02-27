@@ -3,127 +3,19 @@ import { connect } from 'dva';
 import {
   Card,
   Form,
-  Input,
   Button,
-  Col,
-  Row,
-  Icon,
-  Modal,
+  Drawer,
   message,
 } from 'antd';
 import StandardTable from '@/components/StandardTable';
+import EditDrawer from './edit/index';
 
 import styles from './index.less';
 
-const FormItem = Form.Item;
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
-
-const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible, modalLenght, handleAddModalLenght } = props;
-  const onAddMould = () => {
-    const obj = modalLenght;
-    obj.push({ id: new Date().getTime(), proId: '', proNum: '' });
-    handleAddModalLenght(obj);
-  };
-  const onDelMould = (index) => {
-    const obj = modalLenght;
-    obj.splice(index, 1);
-    handleAddModalLenght(obj);
-  };
-  const okHandle = () => {
-    form.validateFields((err, fieldsValue) => {
-      if (err) return;
-      form.resetFields();
-      handleAdd(fieldsValue);
-    });
-  };
-  return (
-    <Modal
-      destroyOnClose
-      width={740}
-      title="新增模具"
-      visible={modalVisible}
-      onOk={okHandle}
-      onCancel={() => handleModalVisible()}
-    >
-      <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-        <Col span={12}>
-          <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具名称">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true, message: '请输入至少五个字符的产品名称！', min: 5 }],
-            })(<Input placeholder="请输入"/>)}
-          </FormItem>
-        </Col>
-        <Col span={12}>
-          <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具编号">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
-            })(<Input placeholder="请输入"/>)}
-          </FormItem>
-        </Col>
-        <Col span={12}>
-          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
-          </FormItem>
-        </Col>
-        <Col span={12}>
-          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="穴数">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
-          </FormItem>
-        </Col>
-        {
-          modalLenght.map((item, index) => {
-            return (
-              <div key={index}>
-                <Col span={12}>
-                  <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label='产品编号'>
-                    {form.getFieldDecorator('desc' + item.id, {
-                      rules: [{ required: true }],
-                      initialValue: item.proId || '',
-                    })(
-                      <Input placeholder="请输入"/>,
-                    )}
-                  </FormItem>
-                </Col>
-                <Col span={12}>
-                  <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="穴数">
-                    {form.getFieldDecorator('num' + item.id, {
-                      rules: [{ required: true }],
-                      initialValue: item.proNum || '',
-                    })(
-                      <Input placeholder="请输入"/>,
-                    )}
-                    <Icon className={styles.formIcon} onClick={(e) => onDelMould(index)} type="minus-circle"/>
-                  </FormItem>
-                </Col>
-              </div>
-            );
-          })
-        }
-        <Col span={24}>
-          <Button
-            style={{ width: '100%', marginTop: 16, marginBottom: 8 }}
-            type="dashed"
-            onClick={onAddMould}
-            icon="plus"
-          >新增产品信息
-          </Button>
-        </Col>
-      </Row>
-    </Modal>
-  );
-});
 
 /* eslint react/no-multi-comp:0 */
 @connect(({ rule, loading }) => ({
@@ -135,7 +27,6 @@ class ProcessRoute extends PureComponent {
   state = {
     modalVisible: false,
     selectedRows: [],
-    modalLenght: [],
     formValues: {},
   };
 
@@ -168,7 +59,7 @@ class ProcessRoute extends PureComponent {
     {
       title: '操作',
       render: (text, record) => (
-        <a href="javascript:void(0);">编辑</a>
+        <a>编辑</a>
       ),
     },
   ];
@@ -241,15 +132,13 @@ class ProcessRoute extends PureComponent {
   // 显示隐藏弹框
   handleModalVisible = flag => {
     this.setState({
-      modalLenght: [],
       modalVisible: !!flag,
     });
   };
 
-  // 添加addModalLenght
-  handleAddModalLenght = (array) => {
+  onClose = () => {
     this.setState({
-      modalLenght: JSON.parse(JSON.stringify(array)),
+      modalVisible: false,
     });
   };
 
@@ -271,21 +160,14 @@ class ProcessRoute extends PureComponent {
       rule: { data },
       loading,
     } = this.props;
-    const { selectedRows, modalLenght, modalVisible } = this.state;
-    const parentMethods = {
-      modalLenght: modalLenght,
-      handleAddModalLenght: this.handleAddModalLenght,
-      handleAdd: this.handleAdd,
-      handleModalVisible: this.handleModalVisible,
-    };
+    const { selectedRows, modalVisible } = this.state;
+
     return (
       <div>
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
-              {/*<Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>*/}
-              {/*新增*/}
-              {/*</Button>*/}
+              <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>新增</Button>
               {selectedRows.length > 0 && (
                 <span>
                   <Button onClick={this.handleMenuClick} key='remove'>批量删除</Button>
@@ -302,7 +184,12 @@ class ProcessRoute extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
+        <Drawer title={<div><span>新增工艺路线</span>
+          <Button className={styles.DrawerSaveBtn} type="primary" size='small' icon="file-done">保存</Button></div>}
+                placement="right" width="100%" visible={modalVisible} destroyOnClose
+                onClose={this.onClose} bodyStyle={{ height: 'calc(100% - 55px)', padding: 0 }}>
+          <EditDrawer/>
+        </Drawer>
       </div>
     );
   }
