@@ -1,10 +1,13 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Button, Drawer, message } from 'antd';
+import { Card, Form, Row, Col, Button, Drawer, message, Input, Select } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import EditDrawer from './edit/index';
 
 import styles from './index.less';
+
+const FormItem = Form.Item;
+const { Option } = Select.Option;
 
 const getValue = obj =>
   Object.keys(obj)
@@ -12,16 +15,23 @@ const getValue = obj =>
     .join(',');
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ proRoutes, loading }) => ({
+  proRoutes,
+  loading: loading.models.proRoutes,
 }))
 @Form.create()
 class ProcessRoute extends PureComponent {
   state = {
     modalVisible: false,
     selectedRows: [],
-    formValues: {},
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    formValues: {
+      name: '',
+      productName: '',
+    },
   };
 
   columns = [
@@ -35,20 +45,19 @@ class ProcessRoute extends PureComponent {
     },
     {
       title: '加工产品',
-      dataIndex: 'desc',
+      dataIndex: 'productName',
     },
     {
       title: '工序流程',
-      dataIndex: 'callNo',
-      render: val => `${val} 万`,
+      dataIndex: 'craftsProcess',
     },
     {
       title: '创建时间',
-      dataIndex: 'updatedAt',
+      dataIndex: 'createDate',
     },
     {
       title: '创建人',
-      dataIndex: 'desc2',
+      dataIndex: 'createName',
     },
     {
       title: '操作',
@@ -56,16 +65,17 @@ class ProcessRoute extends PureComponent {
     },
   ];
 
-  componentDidMount() {
+  componentDidMount () {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'proRoutes/fetch',
     });
   }
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
+  handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
+    this.setState({ pagination });
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
       const newObj = { ...obj };
@@ -84,34 +94,34 @@ class ProcessRoute extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'proRoutes/fetch',
       payload: params,
     });
   };
 
   // 删除
-  handleMenuClick = e => {
+  handleMenuClick = () => {
     const { dispatch } = this.props;
-    const { selectedRows } = this.state;
-
+    const { selectedRows, pagination } = this.state;
     if (selectedRows.length === 0) return;
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'rule/remove',
-          payload: {
-            key: selectedRows.map(row => row.key),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
-        });
-        break;
-      default:
-        break;
-    }
+    const ids = [];
+    selectedRows.map(item => {
+      ids.push(`${item.id}`);
+      return '';
+    });
+    dispatch({
+      type: 'proRoutes/remove',
+      payload: { ids },
+      callback: response => {
+        if (response.code === 200) {
+          message.success('删除成功');
+          this.setState({ selectedRows: [] });
+        } else {
+          message.warning(response.message);
+        }
+        this.handleStandardTableChange(pagination);
+      },
+    });
   };
 
   // 勾选选择
@@ -134,10 +144,10 @@ class ProcessRoute extends PureComponent {
     });
   };
 
-  handleAdd = fields => {
+  handleSubmit = fields => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/add',
+      type: 'proRoutes/add',
       payload: {
         desc: fields.desc,
       },
@@ -147,10 +157,11 @@ class ProcessRoute extends PureComponent {
     this.handleModalVisible();
   };
 
-  render() {
+  render () {
     const {
-      rule: { data },
+      proRoutes: { data },
       loading,
+      form,
     } = this.props;
     const { selectedRows, modalVisible } = this.state;
 
@@ -181,29 +192,36 @@ class ProcessRoute extends PureComponent {
           </div>
         </Card>
         <Drawer
-          title={
-            <div>
-              <span>新增工艺路线</span>
-              <Button
-                style={{ float: 'right', marginRight: '50px' }}
-                type="default"
-                size="small"
-                onClick={this.onClose}
-                icon="close-circle"
-              >
-                取消
-              </Button>
-              <Button
-                className={styles.DrawerSaveBtn}
-                onClick={this.onClose}
-                type="primary"
-                size="small"
-                icon="file-done"
-              >
-                保存
-              </Button>
-            </div>
-          }
+          title={<div>
+            <span>新增工艺路线</span>
+            <Form layout="inline" onSubmit={this.handleSubmit}>
+              <Row>
+                <Col span={12}>
+                  <FormItem key="name" labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} label="工艺线路名称">
+                    {form.getFieldDecorator('desc', {
+                      rules: [{ required: true, message: '请输入工艺线路名称！' }, { min: 20, message: '工艺线路名称长度不能超过20字符' }],
+                    })(<Input placeholder="请输入"/>)}
+                  </FormItem>
+                </Col>
+                <Col span={12}>
+                  <FormItem key="proName" labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} label="产品名称">
+                    {form.getFieldDecorator('desc', {
+                      rules: [{ required: true, message: '请选择产品名称！' }],
+                    })(<Select mode="multiple" style={{ width: '100%' }} placeholder='请选择'>
+                      {[].map(item => (
+                        <Option key={item}>{item}</Option>
+                      ))}
+                    </Select>)}
+                  </FormItem>
+                </Col>
+              </Row>
+              <Button style={{ float: 'right', marginRight: '50px' }} type="default" size="small" onClick={this.onClose}
+                      icon="close-circle">取消</Button>
+              <Button className={styles.DrawerSaveBtn} onClick={this.onClose} type="primary" size="small"
+                      icon="file-done">保存</Button>
+            </Form>
+
+          </div>}
           placement="right"
           width="100%"
           visible={modalVisible}
@@ -212,7 +230,7 @@ class ProcessRoute extends PureComponent {
           onClose={this.onClose}
           bodyStyle={{ height: 'calc(100% - 55px)', padding: 0 }}
         >
-          <EditDrawer />
+          <EditDrawer/>
         </Drawer>
       </div>
     );

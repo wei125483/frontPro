@@ -123,9 +123,9 @@ const CreateForm = Form.create()(props => {
 });
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ crafts, loading }) => ({
+  crafts,
+  loading: loading.models.crafts,
 }))
 @Form.create()
 class ProcessList extends PureComponent {
@@ -133,7 +133,14 @@ class ProcessList extends PureComponent {
     modalVisible: false,
     selectedRows: [],
     modalLenght: [],
-    formValues: {},
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    formValues: {
+      name:'',
+      serialNum:'',
+    },
   };
 
   columns = [
@@ -147,33 +154,33 @@ class ProcessList extends PureComponent {
     },
     {
       title: '工艺编号',
-      dataIndex: 'desc',
+      dataIndex: 'serialNum',
     },
     {
       title: '加工设备类型',
-      dataIndex: 'callNo',
-      render: val => `${val} 万`,
+      dataIndex: 'deviceType',
     },
     {
       title: '创建时间',
-      dataIndex: 'updatedAt',
+      dataIndex: 'createDate',
     },
     {
       title: '创建人',
-      dataIndex: 'desc2',
+      dataIndex: 'createName',
     },
   ];
 
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'crafts/fetch',
     });
   }
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
+  handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
+    this.setState({ pagination });
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
       const newObj = { ...obj };
@@ -192,34 +199,33 @@ class ProcessList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'crafts/fetch',
       payload: params,
     });
   };
-
   // 删除
-  handleMenuClick = e => {
+  handleMenuClick = () => {
     const { dispatch } = this.props;
-    const { selectedRows } = this.state;
-
+    const { selectedRows, pagination } = this.state;
     if (selectedRows.length === 0) return;
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'rule/remove',
-          payload: {
-            key: selectedRows.map(row => row.key),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
-        });
-        break;
-      default:
-        break;
-    }
+    const ids = [];
+    selectedRows.map(item => {
+      ids.push(`${item.id}`);
+      return '';
+    });
+    dispatch({
+      type: 'crafts/remove',
+      payload: { ids },
+      callback: response => {
+        if (response.code === 200) {
+          message.success('删除成功');
+          this.setState({ selectedRows: [] });
+        } else {
+          message.warning(response.message);
+        }
+        this.handleStandardTableChange(pagination);
+      },
+    });
   };
 
   // 勾选选择
@@ -247,7 +253,7 @@ class ProcessList extends PureComponent {
   handleAdd = fields => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/add',
+      type: 'crafts/add',
       payload: {
         desc: fields.desc,
       },
@@ -259,7 +265,7 @@ class ProcessList extends PureComponent {
 
   render() {
     const {
-      rule: { data },
+      crafts: { data },
       loading,
     } = this.props;
     const { selectedRows, modalLenght, modalVisible } = this.state;

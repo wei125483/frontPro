@@ -51,28 +51,28 @@ const CreateForm = Form.create()(props => {
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具名称">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true, message: '请输入至少五个字符的产品名称！', min: 5 }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具编号">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="穴数">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         {modalLenght.map((item, index) => {
@@ -88,7 +88,7 @@ const CreateForm = Form.create()(props => {
                   {form.getFieldDecorator(`desc${item.id}`, {
                     rules: [{ required: true }],
                     initialValue: item.proId || '',
-                  })(<Input placeholder="请输入" />)}
+                  })(<Input placeholder="请输入"/>)}
                 </FormItem>
               </Col>
               <Col span={12}>
@@ -96,7 +96,7 @@ const CreateForm = Form.create()(props => {
                   {form.getFieldDecorator(`num${item.id}`, {
                     rules: [{ required: true }],
                     initialValue: item.proNum || '',
-                  })(<Input placeholder="请输入" />)}
+                  })(<Input placeholder="请输入"/>)}
                   <Icon
                     className={styles.formIcon}
                     onClick={e => onDelMould(index)}
@@ -123,9 +123,9 @@ const CreateForm = Form.create()(props => {
 });
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ products, loading }) => ({
+  products,
+  loading: loading.models.products,
 }))
 @Form.create()
 class ArchivesList extends PureComponent {
@@ -133,7 +133,14 @@ class ArchivesList extends PureComponent {
     modalVisible: false,
     selectedRows: [],
     modalLenght: [],
-    formValues: {},
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+    formValues: {
+      name: '',
+      serialNum: '',
+    },
   };
 
   columns = [
@@ -147,41 +154,45 @@ class ArchivesList extends PureComponent {
     },
     {
       title: '产品编号',
-      dataIndex: 'desc',
+      dataIndex: 'serialNum',
     },
     {
       title: '产品规格',
-      dataIndex: 'callNo',
-      render: val => `${val} 万`,
+      dataIndex: 'specification',
     },
     {
       title: '颜色',
-      dataIndex: 'desc1',
+      dataIndex: 'color',
     },
     {
       title: '类型',
-      dataIndex: 'desc1',
+      dataIndex: 'sourceType',
+      render: val => {
+        const index = val || 1;
+        return ['采购', '自产'][index - 1];
+      },
     },
     {
       title: '创建时间',
-      dataIndex: 'updatedAt',
+      dataIndex: 'createDate',
     },
     {
       title: '创建人',
-      dataIndex: 'desc2',
+      dataIndex: 'createName',
     },
   ];
 
-  componentDidMount() {
+  componentDidMount () {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'products/fetch',
     });
   }
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
+  handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
+    this.setState({ pagination });
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
       const newObj = { ...obj };
@@ -200,34 +211,34 @@ class ArchivesList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'products/fetch',
       payload: params,
     });
   };
 
   // 删除
-  handleMenuClick = e => {
+  handleMenuClick = () => {
     const { dispatch } = this.props;
-    const { selectedRows } = this.state;
-
+    const { selectedRows, pagination } = this.state;
     if (selectedRows.length === 0) return;
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'rule/remove',
-          payload: {
-            key: selectedRows.map(row => row.key),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
-        });
-        break;
-      default:
-        break;
-    }
+    const ids = [];
+    selectedRows.map(item => {
+      ids.push(`${item.id}`);
+      return '';
+    });
+    dispatch({
+      type: 'products/remove',
+      payload: { ids },
+      callback: response => {
+        if (response.code === 200) {
+          message.success('删除成功');
+          this.setState({ selectedRows: [] });
+        } else {
+          message.warning(response.message);
+        }
+        this.handleStandardTableChange(pagination);
+      },
+    });
   };
 
   // 勾选选择
@@ -255,7 +266,7 @@ class ArchivesList extends PureComponent {
   handleAdd = fields => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/add',
+      type: 'products/add',
       payload: {
         desc: fields.desc,
       },
@@ -265,9 +276,9 @@ class ArchivesList extends PureComponent {
     this.handleModalVisible();
   };
 
-  render() {
+  render () {
     const {
-      rule: { data },
+      products: { data },
       loading,
     } = this.props;
     const { selectedRows, modalLenght, modalVisible } = this.state;
@@ -303,7 +314,7 @@ class ArchivesList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
+        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>
     );
   }

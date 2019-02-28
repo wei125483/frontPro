@@ -8,7 +8,7 @@ import mark2 from './mark2.svg';
 
 // 注册模型卡片基类
 Flow.registerNode('model-card', {
-  draw(item) {
+  draw (item) {
     const group = item.getGraphicGroup();
     const model = item.getModel();
     const width = 184;
@@ -64,10 +64,11 @@ Flow.registerNode('model-card', {
     });
     return keyShape;
   },
+  anchor: [[0.5, 0, { type: 'input' }], [0.5, 1, { type: 'output' }]],
 });
 
 class Editor extends Component {
-  constructor(props) {
+  constructor (props) {
     super(props);
     this.editor = new G6Editor();
     this.state = {
@@ -118,10 +119,41 @@ class Editor extends Component {
     };
   }
 
-  componentDidMount() {
+  componentDidMount () {
     const page = this.editor.getCurrentPage();
     // 显示网格线
     page.showGrid();
+
+    // 输入锚点不可以连出边
+    page.on('hoveranchor:beforeaddedge', ev => {
+      if (ev.anchor.type === 'input') {
+        ev.cancel = true;
+      }
+      // 只能有一个输出线
+      const { id, dataMap } = ev.item;
+      Object.getOwnPropertyNames(dataMap).map(item => {
+        if (dataMap[item].source && dataMap[item].source === id) {
+          ev.cancel = true;
+        }
+      });
+    });
+
+    page.on('dragedge:beforeshowanchor', ev => {
+      // console.log(ev);
+      // 只允许目标锚点是输入，源锚点是输出，才能连接
+      if (!(ev.targetAnchor.type === 'input' && ev.sourceAnchor.type === 'output')) {
+        ev.cancel = true;
+      }
+      // 如果拖动的是目标方向，则取消显示目标节点中已被连过的锚点
+      if (ev.dragEndPointType === 'target' && page.anchorHasBeenLinked(ev.target, ev.targetAnchor)) {
+        ev.cancel = true;
+      }
+      // 如果拖动的是源方向，则取消显示源节点中已被连过的锚点
+      if (ev.dragEndPointType === 'source' && page.anchorHasBeenLinked(ev.source, ev.sourceAnchor)) {
+        ev.cancel = true;
+      }
+    });
+
     // 变更后
     page.on('afterchange', ev => {
       const relation = page.save();
@@ -192,7 +224,7 @@ class Editor extends Component {
       color_type: '#1890FF',
       type_icon_url: mark2,
       // 设置锚点
-      anchor: [[0.5, 0, {}], [0.5, 1, {}]],
+      anchor: [[0.5, 0, { type: 'input' }], [0.5, 1, { type: 'output' }]],
     };
     Flow.registerNode(dt.id, obj, 'model-card');
   };
@@ -224,7 +256,9 @@ class Editor extends Component {
       sourceIds.push(item.source); // 保存所有子类ID
       const source = newData[ids.indexOf(item.source)] || {}; // 从何处
       const target = newData[ids.indexOf(item.target)] || {}; // 到何处
-      target.childens.push({ ...source });
+      if (source && source.id && target && target.id) {
+        target.childens.push({ ...source });
+      }
       return '';
     });
     ids.map((id, index) => {
@@ -233,14 +267,14 @@ class Editor extends Component {
       }
       return '';
     });
-    console.log('父类ID为：', parentData);
+    // console.log('父类ID为：', parentData);
   };
 
-  render() {
+  render () {
     const { relation, dataList, data } = this.state;
     return (
       <div className={styles.editor}>
-        <ItemPannel editor={this.editor} data={data} />
+        <ItemPannel editor={this.editor} data={data}/>
         <Page
           relation={relation}
           callBack={this.callBack}
