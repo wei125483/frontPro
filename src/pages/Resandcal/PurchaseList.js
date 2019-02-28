@@ -49,7 +49,7 @@ const CreateForm = Form.create()(props => {
                 { required: true, message: '请输入物料名称！' },
                 { max: 30, message: '最长不能超过30字符' },
               ],
-            })(<Input placeholder="请输入" maxLength={30} />)}
+            })(<Input placeholder="请输入" maxLength={30}/>)}
           </FormItem>
         </Col>
         <Col span={12}>
@@ -60,21 +60,21 @@ const CreateForm = Form.create()(props => {
                 { max: 20, message: '最长不能超过20字符' },
                 { pattern: /^\w+$/, message: '请输入字母+数字组合' },
               ],
-            })(<Input placeholder="请输入" maxLength={20} />)}
+            })(<Input placeholder="请输入" maxLength={20}/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
             {form.getFieldDecorator('amount', {
               rules: [{ required: true, message: '请输入数量！' }],
-            })(<InputNumber placeholder="请输入" max={999999} style={{ width: '100%' }} />)}
+            })(<InputNumber placeholder="请输入" max={999999} style={{ width: '100%' }}/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="num" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="到货时间">
             {form.getFieldDecorator('arrivalDate', {
               rules: [{ required: true, message: '请输入到货时间！' }],
-            })(<DatePicker format="YYYY-MM-DD" style={{ width: '100%' }} />)}
+            })(<DatePicker format="YYYY-MM-DD" style={{ width: '100%' }}/>)}
           </FormItem>
         </Col>
       </Row>
@@ -91,6 +91,7 @@ const CreateForm = Form.create()(props => {
 class PurhaseList extends PureComponent {
   state = {
     modalVisible: false,
+    resourceList: [],
     pagination: {
       current: 1,
       pageSize: 10,
@@ -142,7 +143,7 @@ class PurhaseList extends PureComponent {
     },
   ];
 
-  componentDidMount() {
+  componentDidMount () {
     const { dispatch } = this.props;
     const { pagination, reqParam } = this.state;
     dispatch({
@@ -151,6 +152,21 @@ class PurhaseList extends PureComponent {
         pageNum: pagination.current,
         pageSize: pagination.pageSize,
         ...reqParam,
+      },
+    });
+
+    // 查询所有库存物料信息
+    dispatch({
+      type: 'resource/fetchBrief',
+      payload: {},
+      callback (response) {
+        const { data, code } = response;
+        if (code === '200') {
+          this.setState({
+            resourceList: data,
+          });
+        }
+        console.log(response, '==============');
       },
     });
   }
@@ -228,7 +244,7 @@ class PurhaseList extends PureComponent {
     });
   };
 
-  render() {
+  render () {
     const {
       purchase: { data },
       loading,
@@ -259,7 +275,7 @@ class PurhaseList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
+        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>
     );
   }

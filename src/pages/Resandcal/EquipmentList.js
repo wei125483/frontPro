@@ -89,15 +89,11 @@ const CreateForm = Form.create()(props => {
         {form.getFieldDecorator('moldIds', {
           rules: [{ required: true, message: '请输入使用模具！' }],
         })(
-          <Transfer
-            dataSource={mockData}
-            listStyle={{
-              width: 160,
-              height: 200,
-            }}
-            targetKeys={targetKeys}
-            render={renderItem}
-          />
+          <Select style={{ width: '100%' }} mode="multiple">
+            <Option value="1">模具1</Option>
+            <Option value="2">模具2</Option>
+            <Option value="3">模具3</Option>
+          </Select>
         )}
       </FormItem>
     </Modal>

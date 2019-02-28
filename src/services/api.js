@@ -38,6 +38,11 @@ export async function updateResource (params) {
   });
 }
 
+export async function queryResourceBrief (params) {
+  return request(`/server/aps/resource/materiel/brief/list?${stringify(params)}`);
+}
+
+
 /**
  *  采购计划
  * @param params

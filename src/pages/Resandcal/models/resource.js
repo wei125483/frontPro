@@ -1,4 +1,4 @@
-import { queryResource, addResource, delResource, updateResource } from '@/services/api';
+import { queryResource, addResource, delResource, updateResource,queryResourceBrief } from '@/services/api';
 
 export default {
   namespace: 'resource',
@@ -25,6 +25,14 @@ export default {
         type: 'save',
         payload: resData,
       });
+    },
+    * fetchBrief ({ payload }, { call, put }) {
+      const response = yield call(queryResourceBrief, payload);
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+      if (callback) callback(response);
     },
     * add ({ payload, callback }, { call, put }) {
       const response = yield call(addResource, payload);

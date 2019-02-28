@@ -7,20 +7,24 @@ import {
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
+import moment from 'moment/moment';
 
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
 
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ moldl, loading }) => ({
+  moldl,
+  loading: loading.models.moldl,
 }))
 @Form.create()
 class MouldList extends PureComponent {
   state = {
-    formValues: {},
+    formValues: {
+      startDate: '1970-01-01',
+      endDate: moment(new Date()).format('YYYY-MM-DD'),
+    },
   };
 
   columns = [
@@ -61,12 +65,16 @@ class MouldList extends PureComponent {
 
   componentDidMount () {
     const { dispatch } = this.props;
+    const { formValues } = this.state;
     dispatch({
-      type: 'rule/fetch',
+      type: 'moldl/fetch',
+      payload: {
+        ...formValues,
+      },
     });
   }
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
+  handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
 
@@ -87,14 +95,14 @@ class MouldList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'moldl/fetch',
       payload: params,
     });
   };
 
   render () {
     const {
-      rule: { data },
+      moldl: { data },
       loading,
     } = this.props;
     return (

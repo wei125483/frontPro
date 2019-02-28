@@ -1,13 +1,13 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Row, Col, Button, Drawer, message, Input, Select } from 'antd';
+import { Card, Form, Button, Drawer,Select, message, Input } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import EditDrawer from './edit/index';
 
 import styles from './index.less';
 
 const FormItem = Form.Item;
-const { Option } = Select.Option;
+const { Option } = Select;
 
 const getValue = obj =>
   Object.keys(obj)
@@ -144,17 +144,22 @@ class ProcessRoute extends PureComponent {
     });
   };
 
-  handleSubmit = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'proRoutes/add',
-      payload: {
-        desc: fields.desc,
-      },
+  handleSubmit = () => {
+    const { form } = this.props;
+    form.validateFields((err, fieldsValue) => {
+      if (err) return;
+      form.resetFields();
+      console.log(fieldsValue);
     });
-
-    message.success('添加成功');
-    this.handleModalVisible();
+    // const { dispatch } = this.props;
+    // dispatch({
+    //   type: 'proRoutes/add',
+    //   payload: {
+    //     desc: fields.desc,
+    //   },
+    // });
+    // message.success('添加成功');
+    // this.handleModalVisible();
   };
 
   render () {
@@ -193,34 +198,32 @@ class ProcessRoute extends PureComponent {
         </Card>
         <Drawer
           title={<div>
-            <span>新增工艺路线</span>
-            <Form layout="inline" onSubmit={this.handleSubmit}>
-              <Row>
-                <Col span={12}>
-                  <FormItem key="name" labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} label="工艺线路名称">
-                    {form.getFieldDecorator('desc', {
-                      rules: [{ required: true, message: '请输入工艺线路名称！' }, { min: 20, message: '工艺线路名称长度不能超过20字符' }],
-                    })(<Input placeholder="请输入"/>)}
-                  </FormItem>
-                </Col>
-                <Col span={12}>
-                  <FormItem key="proName" labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} label="产品名称">
-                    {form.getFieldDecorator('desc', {
-                      rules: [{ required: true, message: '请选择产品名称！' }],
-                    })(<Select mode="multiple" style={{ width: '100%' }} placeholder='请选择'>
-                      {[].map(item => (
-                        <Option key={item}>{item}</Option>
-                      ))}
-                    </Select>)}
-                  </FormItem>
-                </Col>
-              </Row>
-              <Button style={{ float: 'right', marginRight: '50px' }} type="default" size="small" onClick={this.onClose}
-                      icon="close-circle">取消</Button>
-              <Button className={styles.DrawerSaveBtn} onClick={this.onClose} type="primary" size="small"
+            <Form layout="inline">
+              <FormItem key="title">
+                <span className={styles.titleSpan}>新增工艺路线</span>
+              </FormItem>
+              <FormItem key="name" label="工艺线路名称">
+                {form.getFieldDecorator('name', {
+                  rules: [{ required: true, message: '请输入工艺线路名称！' }, { max: 20, message: '工艺线路名称长度不能超过20字符' }],
+                })(<Input placeholder="请输入" maxLength={20}/>)}
+              </FormItem>
+              <FormItem key="type" label="产品名称">
+                {form.getFieldDecorator('product', {
+                  initialValue: 1,
+                  rules: [{ required: true, message: '请选择产品名称！'  }],
+                })(
+                  <Select style={{ width: '160px' }} placeholder="请选择">
+                    <Option value={1}>原料</Option>
+                    <Option value={2}>半成品</Option>
+                    <Option value={3}>成品</Option>
+                  </Select>
+                )}
+              </FormItem>
+              <Button style={{ float: 'right', margin: '10px 50px 0 0' }} type="default" size="small"
+                      onClick={this.onClose} icon="close-circle">取消</Button>
+              <Button className={styles.DrawerSaveBtn} type="primary" onClick={this.handleSubmit} size="small"
                       icon="file-done">保存</Button>
             </Form>
-
           </div>}
           placement="right"
           width="100%"
@@ -228,7 +231,7 @@ class ProcessRoute extends PureComponent {
           closable={false}
           destroyOnClose
           onClose={this.onClose}
-          bodyStyle={{ height: 'calc(100% - 55px)', padding: 0 }}
+          bodyStyle={{ height: 'calc(100% - 74px)', overflowX: 'hidden', padding: 0 }}
         >
           <EditDrawer/>
         </Drawer>
