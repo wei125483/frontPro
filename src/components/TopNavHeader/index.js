@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import Link from 'umi/link';
-import RightContent from '../GlobalHeader/RightContent';
 import BaseMenu from '../SiderMenu/BaseMenu';
 import { getFlatMenuKeys } from '../SiderMenu/SiderMenuUtils';
 import styles from './index.less';
@@ -44,7 +43,6 @@ export default class TopNavHeader extends PureComponent {
               <BaseMenu {...this.props} flatMenuKeys={flatMenuKeys} className={styles.menu} />
             </div>
           </div>
-          <RightContent {...this.props} />
         </div>
       </div>
     );

@@ -1,16 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Card,
-  Form,
-  Input,
-  Button,
-  Col,
-  Row,
-  Icon,
-  Modal,
-  message,
-} from 'antd';
+import { Card, Form, Input, Button, Col, Row, Icon, Modal, message } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
@@ -22,13 +12,20 @@ const getValue = obj =>
     .join(',');
 
 const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible, modalLenght, handleAddModalLenght } = props;
+  const {
+    modalVisible,
+    form,
+    handleAdd,
+    handleModalVisible,
+    modalLenght,
+    handleAddModalLenght,
+  } = props;
   const onAddMould = () => {
     const obj = modalLenght;
     obj.push({ id: new Date().getTime(), proId: '', proNum: '' });
     handleAddModalLenght(obj);
   };
-  const onDelMould = (index) => {
+  const onDelMould = index => {
     const obj = modalLenght;
     obj.splice(index, 1);
     handleAddModalLenght(obj);
@@ -50,85 +47,87 @@ const CreateForm = Form.create()(props => {
       onCancel={() => handleModalVisible()}
     >
       <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-        <Col span={24}><h3>产品</h3></Col>
+        <Col span={24}>
+          <h3>产品</h3>
+        </Col>
         <Col span={8}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具名称">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true, message: '请输入至少五个字符的产品名称！', min: 5 }],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={8}>
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具编号">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={8}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
-        <Col span={24}><h3>产品BOM</h3></Col>
+        <Col span={24}>
+          <h3>产品BOM</h3>
+        </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="料品编码">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
-        {
-          modalLenght.map((item, index) => {
-            return (
-              <div key={index}>
-                <Col span={12}>
-                  <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label='料品编码'>
-                    {form.getFieldDecorator('desc' + item.id, {
-                      rules: [{ required: true }],
-                      initialValue: item.proId || '',
-                    })(
-                      <Input placeholder="请输入"/>,
-                    )}
-                  </FormItem>
-                </Col>
-                <Col span={12}>
-                  <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
-                    {form.getFieldDecorator('num' + item.id, {
-                      rules: [{ required: true }],
-                      initialValue: item.proNum || '',
-                    })(
-                      <Input placeholder="请输入"/>,
-                    )}
-                    <Icon className={styles.formIcon} onClick={(e) => onDelMould(index)} type="minus-circle"/>
-                  </FormItem>
-                </Col>
-              </div>
-            );
-          })
-        }
+        {modalLenght.map((item, index) => {
+          return (
+            <div key={index}>
+              <Col span={12}>
+                <FormItem
+                  key="type"
+                  labelCol={{ span: 6 }}
+                  wrapperCol={{ span: 16 }}
+                  label="料品编码"
+                >
+                  {form.getFieldDecorator(`desc${item.id}`, {
+                    rules: [{ required: true }],
+                    initialValue: item.proId || '',
+                  })(<Input placeholder="请输入" />)}
+                </FormItem>
+              </Col>
+              <Col span={12}>
+                <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
+                  {form.getFieldDecorator(`num${item.id}`, {
+                    rules: [{ required: true }],
+                    initialValue: item.proNum || '',
+                  })(<Input placeholder="请输入" />)}
+                  <Icon
+                    className={styles.formIcon}
+                    onClick={e => onDelMould(index)}
+                    type="minus-circle"
+                  />
+                </FormItem>
+              </Col>
+            </div>
+          );
+        })}
         <Col span={24}>
           <Button
             style={{ width: '100%', marginTop: 16, marginBottom: 8 }}
             type="dashed"
             onClick={onAddMould}
             icon="plus"
-          >新增一条BOM
+          >
+            新增一条BOM
           </Button>
         </Col>
       </Row>
@@ -137,9 +136,9 @@ const CreateForm = Form.create()(props => {
 });
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ boms, loading }) => ({
+  boms,
+  loading: loading.models.boms,
 }))
 @Form.create()
 class BomList extends PureComponent {
@@ -147,6 +146,10 @@ class BomList extends PureComponent {
     modalVisible: false,
     selectedRows: [],
     modalLenght: [],
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
     formValues: {},
   };
 
@@ -161,49 +164,55 @@ class BomList extends PureComponent {
     },
     {
       title: '产品编号',
-      dataIndex: 'desc',
+      dataIndex: 'serialNum',
     },
     {
       title: 'BOM',
-      children: [{
-        title: '配置产品编码',
-        dataIndex: 'street1',
-      }, {
-        title: '数量',
-        dataIndex: 'street',
-      },
+      children: [
+        {
+          title: '配置产品编码',
+          dataIndex: 'street1',
+        },
+        {
+          title: '数量',
+          dataIndex: 'num',
+        },
       ],
     },
     {
       title: '规格',
-      dataIndex: 'callNo1',
-      render: val => `${val} 万`,
+      dataIndex: 'specification',
     },
     {
       title: '类型',
-      dataIndex: 'callNo',
-      render: val => `${val} 万`,
+      dataIndex: 'productType',
+      render: val => {
+        // 1 - 原料； 2 - 半成品； 3 - 成品
+        const index = val || 1;
+        return ['原料', '半成品', '成品'][index - 1];
+      },
     },
     {
       title: '创建时间',
-      dataIndex: 'updatedAt',
+      dataIndex: 'createDate',
     },
     {
       title: '创建人',
-      dataIndex: 'desc2',
+      dataIndex: 'createName',
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'boms/fetch',
     });
   }
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
+  handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
+    this.setState({ pagination });
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
       const newObj = { ...obj };
@@ -222,34 +231,34 @@ class BomList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'boms/fetch',
       payload: params,
     });
   };
 
   // 删除
-  handleMenuClick = e => {
+  handleMenuClick = () => {
     const { dispatch } = this.props;
-    const { selectedRows } = this.state;
-
+    const { selectedRows, pagination } = this.state;
     if (selectedRows.length === 0) return;
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'rule/remove',
-          payload: {
-            key: selectedRows.map(row => row.key),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
-        });
-        break;
-      default:
-        break;
-    }
+    const ids = [];
+    selectedRows.map(item => {
+      ids.push(`${item.id}`);
+      return '';
+    });
+    dispatch({
+      type: 'boms/remove',
+      payload: { ids },
+      callback: response => {
+        if (response.code === 200) {
+          message.success('删除成功');
+          this.setState({ selectedRows: [] });
+        } else {
+          message.warning(response.message);
+        }
+        this.handleStandardTableChange(pagination);
+      },
+    });
   };
 
   // 勾选选择
@@ -268,7 +277,7 @@ class BomList extends PureComponent {
   };
 
   // 添加addModalLenght
-  handleAddModalLenght = (array) => {
+  handleAddModalLenght = array => {
     this.setState({
       modalLenght: JSON.parse(JSON.stringify(array)),
     });
@@ -277,7 +286,7 @@ class BomList extends PureComponent {
   handleAdd = fields => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/add',
+      type: 'boms/add',
       payload: {
         desc: fields.desc,
       },
@@ -287,14 +296,14 @@ class BomList extends PureComponent {
     this.handleModalVisible();
   };
 
-  render () {
+  render() {
     const {
-      rule: { data },
+      boms: { data },
       loading,
     } = this.props;
     const { selectedRows, modalLenght, modalVisible } = this.state;
     const parentMethods = {
-      modalLenght: modalLenght,
+      modalLenght,
       handleAddModalLenght: this.handleAddModalLenght,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
@@ -305,11 +314,13 @@ class BomList extends PureComponent {
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
               <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
-              新增
+                新增
               </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button onClick={this.handleMenuClick} key='remove'>批量删除</Button>
+                  <Button onClick={this.handleMenuClick} key="remove">
+                    批量删除
+                  </Button>
                 </span>
               )}
             </div>
@@ -323,7 +334,7 @@ class BomList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
+        <CreateForm {...parentMethods} modalVisible={modalVisible} />
       </div>
     );
   }

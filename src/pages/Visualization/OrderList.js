@@ -1,16 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Card,
-  Form,
-  Input,
-  Button,
-  Col,
-  Row,
-  Icon,
-  Modal,
-  message,
-} from 'antd';
+import { Card, Form, Input, Button, Col, Row, Icon, Modal, message } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
@@ -22,13 +12,20 @@ const getValue = obj =>
     .join(',');
 
 const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible, modalLenght, handleAddModalLenght } = props;
+  const {
+    modalVisible,
+    form,
+    handleAdd,
+    handleModalVisible,
+    modalLenght,
+    handleAddModalLenght,
+  } = props;
   const onAddMould = () => {
     const obj = modalLenght;
     obj.push({ id: new Date().getTime(), proId: '', proNum: '' });
     handleAddModalLenght(obj);
   };
-  const onDelMould = (index) => {
+  const onDelMould = index => {
     const obj = modalLenght;
     obj.splice(index, 1);
     handleAddModalLenght(obj);
@@ -50,85 +47,87 @@ const CreateForm = Form.create()(props => {
       onCancel={() => handleModalVisible()}
     >
       <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-        <Col span={24}><h3>产品</h3></Col>
+        <Col span={24}>
+          <h3>产品</h3>
+        </Col>
         <Col span={8}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具名称">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true, message: '请输入至少五个字符的产品名称！', min: 5 }],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={8}>
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具编号">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={8}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
-        <Col span={24}><h3>产品BOM</h3></Col>
+        <Col span={24}>
+          <h3>产品BOM</h3>
+        </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="料品编码">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
-        {
-          modalLenght.map((item, index) => {
-            return (
-              <div key={index}>
-                <Col span={12}>
-                  <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label='料品编码'>
-                    {form.getFieldDecorator('desc' + item.id, {
-                      rules: [{ required: true }],
-                      initialValue: item.proId || '',
-                    })(
-                      <Input placeholder="请输入"/>,
-                    )}
-                  </FormItem>
-                </Col>
-                <Col span={12}>
-                  <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
-                    {form.getFieldDecorator('num' + item.id, {
-                      rules: [{ required: true }],
-                      initialValue: item.proNum || '',
-                    })(
-                      <Input placeholder="请输入"/>,
-                    )}
-                    <Icon className={styles.formIcon} onClick={(e) => onDelMould(index)} type="minus-circle"/>
-                  </FormItem>
-                </Col>
-              </div>
-            );
-          })
-        }
+        {modalLenght.map((item, index) => {
+          return (
+            <div key={item.id}>
+              <Col span={12}>
+                <FormItem
+                  key="type"
+                  labelCol={{ span: 6 }}
+                  wrapperCol={{ span: 16 }}
+                  label="料品编码"
+                >
+                  {form.getFieldDecorator(`desc${item.id}`, {
+                    rules: [{ required: true }],
+                    initialValue: item.proId || '',
+                  })(<Input placeholder="请输入" />)}
+                </FormItem>
+              </Col>
+              <Col span={12}>
+                <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
+                  {form.getFieldDecorator(`num${item.id}`, {
+                    rules: [{ required: true }],
+                    initialValue: item.proNum || '',
+                  })(<Input placeholder="请输入" />)}
+                  <Icon
+                    className={styles.formIcon}
+                    onClick={() => onDelMould(index)}
+                    type="minus-circle"
+                  />
+                </FormItem>
+              </Col>
+            </div>
+          );
+        })}
         <Col span={24}>
           <Button
             style={{ width: '100%', marginTop: 16, marginBottom: 8 }}
             type="dashed"
             onClick={onAddMould}
             icon="plus"
-          >新增一条BOM
+          >
+            新增一条BOM
           </Button>
         </Col>
       </Row>
@@ -166,7 +165,8 @@ class OrderList extends PureComponent {
     {
       title: '配置产品编码',
       dataIndex: 'street1',
-    }, {
+    },
+    {
       title: '数量',
       dataIndex: 'street',
     },
@@ -190,7 +190,7 @@ class OrderList extends PureComponent {
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
       type: 'rule/fetch',
@@ -264,7 +264,7 @@ class OrderList extends PureComponent {
   };
 
   // 添加addModalLenght
-  handleAddModalLenght = (array) => {
+  handleAddModalLenght = array => {
     this.setState({
       modalLenght: JSON.parse(JSON.stringify(array)),
     });
@@ -283,14 +283,14 @@ class OrderList extends PureComponent {
     this.handleModalVisible();
   };
 
-  render () {
+  render() {
     const {
       rule: { data },
       loading,
     } = this.props;
     const { selectedRows, modalLenght, modalVisible } = this.state;
     const parentMethods = {
-      modalLenght: modalLenght,
+      modalLenght,
       handleAddModalLenght: this.handleAddModalLenght,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
@@ -300,15 +300,17 @@ class OrderList extends PureComponent {
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
-              {/*<Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>*/}
-                {/*新增*/}
-              {/*</Button>*/}
+              {/* <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}> */}
+              {/* 新增 */}
+              {/* </Button> */}
               <Button icon="cluster" type="primary" onClick={() => this.handleModalVisible(true)}>
                 排产
               </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button onClick={this.handleMenuClick} key='remove'>批量删除</Button>
+                  <Button onClick={this.handleMenuClick} key="remove">
+                    批量删除
+                  </Button>
                 </span>
               )}
             </div>
@@ -322,7 +324,7 @@ class OrderList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
+        <CreateForm {...parentMethods} modalVisible={modalVisible} />
       </div>
     );
   }

@@ -1,17 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Card,
-  Form,
-  Input,
-  Select,
-  Button,
-  Col,
-  Row,
-  Modal,
-  message,
-  Radio,
-} from 'antd';
+import { Card, Form, Input, Select, Button, Col, Row, Modal, message, Radio } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
@@ -43,7 +32,7 @@ const CreateForm = Form.create()(props => {
             {form.getFieldDecorator('name', {
               initialValue: itemData.name || '',
               rules: [{ required: true }],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={12}>
@@ -51,7 +40,7 @@ const CreateForm = Form.create()(props => {
             {form.getFieldDecorator('serialNum', {
               initialValue: itemData.serialNum || '',
               rules: [{ required: true }],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={12}>
@@ -64,7 +53,7 @@ const CreateForm = Form.create()(props => {
                 <Option value={1}>原料</Option>
                 <Option value={2}>半成品</Option>
                 <Option value={3}>成品</Option>
-              </Select>,
+              </Select>
             )}
           </FormItem>
         </Col>
@@ -77,7 +66,7 @@ const CreateForm = Form.create()(props => {
               <Select style={{ width: '100%' }} placeholder="请选择">
                 <Option value={1}>采购</Option>
                 <Option value={2}>自产</Option>
-              </Select>,
+              </Select>
             )}
           </FormItem>
         </Col>
@@ -86,7 +75,7 @@ const CreateForm = Form.create()(props => {
             {form.getFieldDecorator('unit', {
               initialValue: itemData.unit || '',
               rules: [{ required: true }],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={12}>
@@ -94,7 +83,7 @@ const CreateForm = Form.create()(props => {
             {form.getFieldDecorator('num', {
               initialValue: itemData.num || '',
               rules: [{ required: true }],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
       </Row>
@@ -158,7 +147,8 @@ class ResourceList extends PureComponent {
     {
       title: '当前库存',
       dataIndex: 'num',
-    }, {
+    },
+    {
       title: '操作',
       render: val => {
         return <a onClick={() => this.updateModalVisible(val)}>编辑</a>;
@@ -166,7 +156,7 @@ class ResourceList extends PureComponent {
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     const { productType, pagination } = this.state;
     dispatch({
@@ -180,7 +170,7 @@ class ResourceList extends PureComponent {
   }
 
   // 改变分页请求接口
-  handleStandardTableChange = (pagination) => {
+  handleStandardTableChange = pagination => {
     const { dispatch } = this.props;
     const { productType } = this.state;
     this.setState({ pagination });
@@ -209,7 +199,7 @@ class ResourceList extends PureComponent {
     dispatch({
       type: 'resource/remove',
       payload: { ids },
-      callback: (response) => {
+      callback: response => {
         if (response.code === 200) {
           message.success('删除成功');
           this.setState({ selectedRows: [] });
@@ -266,8 +256,10 @@ class ResourceList extends PureComponent {
     const isAdd = !itemData.name;
     dispatch({
       type: isAdd ? 'resource/add' : 'resource/update',
-      payload: isAdd ? Object.assign(fields, { availableNum: fields.num }) : Object.assign(itemData, fields),
-      callback: (response) => {
+      payload: isAdd
+        ? Object.assign(fields, { availableNum: fields.num })
+        : Object.assign(itemData, fields),
+      callback: response => {
         if (response.code === 200) {
           message.success(isAdd ? '添加成功' : '更新成功');
           this.handleModalVisible();
@@ -279,7 +271,7 @@ class ResourceList extends PureComponent {
     });
   };
 
-  render () {
+  render() {
     const {
       resource: { data },
       loading,
@@ -301,17 +293,24 @@ class ResourceList extends PureComponent {
                 <Radio.Button value="2">半成品</Radio.Button>
                 <Radio.Button value="3">原料</Radio.Button>
               </Radio.Group>
-              <Button className={styles.add} icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
+              <Button
+                className={styles.add}
+                icon="plus"
+                type="primary"
+                onClick={() => this.handleModalVisible(true)}
+              >
                 新增
               </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button onClick={this.handleMenuClick} key='remove'>批量删除</Button>
+                  <Button onClick={this.handleMenuClick} key="remove">
+                    批量删除
+                  </Button>
                 </span>
               )}
             </div>
             <StandardTable
-              rowKey='resourceTable'
+              rowKey="resourceTable"
               selectedRows={selectedRows}
               loading={loading}
               data={data}
@@ -321,7 +320,7 @@ class ResourceList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
+        <CreateForm {...parentMethods} modalVisible={modalVisible} />
       </div>
     );
   }

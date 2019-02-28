@@ -7,12 +7,12 @@ const { DirectoryTree } = Tree;
 const { TreeNode } = Tree;
 
 class ItemPannel extends PureComponent {
-  constructor (props) {
+  constructor(props) {
     super(props);
     this.element = React.createRef();
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { editor } = this.props;
     const itempannel = new G6Editor.Itempannel({
       container: this.element.current,
@@ -20,24 +20,24 @@ class ItemPannel extends PureComponent {
     editor.add(itempannel);
   }
 
-  render () {
+  render() {
     const { data } = this.props;
     return (
       <div className={styles.itempannel} ref={this.element}>
         <DirectoryTree multiple defaultExpandAll>
-          {
-            data.map(tree => {
-                return <TreeNode
-                  className="getItem"
-                  title={tree.name}
-                  key={tree.id}
-                  data-shape={tree.id}
-                  data-type="node"
-                  data-size="170*34"
-                  isLeaf/>;
-              },
-            )
-          }
+          {data.map(tree => {
+            return (
+              <TreeNode
+                className="getItem"
+                title={tree.name}
+                key={tree.id}
+                data-shape={tree.id}
+                data-type="node"
+                data-size="170*34"
+                isLeaf
+              />
+            );
+          })}
         </DirectoryTree>
       </div>
     );

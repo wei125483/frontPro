@@ -5,7 +5,7 @@ import ItemEditor from './ItemEditor';
 import styles from './style.less';
 
 class Page extends PureComponent {
-  constructor (props) {
+  constructor(props) {
     super(props);
     this.element = React.createRef();
     this.state = {
@@ -14,7 +14,7 @@ class Page extends PureComponent {
     };
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { editor } = this.props;
 
     const page = new G6Editor.Flow({
@@ -27,7 +27,7 @@ class Page extends PureComponent {
       const { dataList } = this.props;
       console.log('dataList', dataList, id);
       let data = {};
-      for (let i = 0; i < dataList.length; i++) {
+      for (let i = 0; i < dataList.length; i += 1) {
         if (dataList[i].id === id) {
           data = dataList[i];
           break;
@@ -53,7 +53,7 @@ class Page extends PureComponent {
   };
 
   // 保存数据
-  handleSubmit = (e) => {
+  handleSubmit = e => {
     e.preventDefault();
     const { form, callBack } = this.props;
     form.validateFields((err, values) => {
@@ -63,7 +63,7 @@ class Page extends PureComponent {
         if (values[`name-${i}`] !== '') {
           data[values[`name-${i}`]] = values[`value-${i}`];
         }
-        i++;
+        i += 1;
       }
       // 将表单传回Index页面
       callBack(values);
@@ -83,29 +83,40 @@ class Page extends PureComponent {
   };
 
   // 删除属性
-  delete = (i) => {
+  delete = i => {
     this.setState(preState => {
       preState.data.splice(i, 1);
       return preState;
     });
   };
 
-  render () {
+  render() {
     // 获取节点出事数据
     const { data, visible } = this.state;
     // 获取form表单
-    const { form: { getFieldDecorator } } = this.props;
+    const {
+      form: { getFieldDecorator },
+    } = this.props;
 
     return (
       // 嵌套类
       <React.Fragment>
-        <div className={styles.page} ref={this.element}/>
-        <Drawer title="路线详情" closable={false} visible={visible} placement="right" width="400" onClose={this.onClose}
-                destroyOnClose={true}>
+        <div className={styles.page} ref={this.element} />
+        <Drawer
+          title="路线详情"
+          closable={false}
+          visible={visible}
+          placement="right"
+          width="400"
+          onClose={this.onClose}
+          destroyOnClose
+        >
           <Form className="ant-advanced-search-form" onSubmit={this.handleSubmit}>
-            <ItemEditor data={data} getFieldDecorator={getFieldDecorator}/>
-            <br/>
-            <Button type="primary" htmlType="submit" block>保存</Button>
+            <ItemEditor data={data} getFieldDecorator={getFieldDecorator} />
+            <br />
+            <Button type="primary" htmlType="submit" block>
+              保存
+            </Button>
           </Form>
         </Drawer>
       </React.Fragment>

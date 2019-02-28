@@ -1,16 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Card,
-  Form,
-  Input,
-  Select,
-  Tabs,
-  Button,
-  Transfer,
-  Modal,
-  message,
-} from 'antd';
+import { Card, Form, Input, Select, Tabs, Button, Transfer, Modal, message } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
@@ -34,7 +24,7 @@ const CreateForm = Form.create()(props => {
   };
   const targetKeys = [];
   const mockData = [];
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 20; i += 1) {
     const data = {
       key: i.toString(),
       title: `content${i + 1}`,
@@ -46,7 +36,7 @@ const CreateForm = Form.create()(props => {
     }
     mockData.push(data);
   }
-  const renderItem = (item) => {
+  const renderItem = item => {
     const customLabel = (
       <span className="custom-item">
         {item.title} - {item.description}
@@ -63,20 +53,26 @@ const CreateForm = Form.create()(props => {
     <Modal
       destroyOnClose
       title="新增设备"
-      width='600px'
+      width="600px"
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
     >
       <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备名称">
         {form.getFieldDecorator('name', {
-          rules: [{ required: true, message: '请输入设备名称！' }, { min: 15, message: '最长不能超过15字符' }],
-        })(<Input placeholder="请输入"/>)}
+          rules: [
+            { required: true, message: '请输入设备名称！' },
+            { min: 15, message: '最长不能超过15字符' },
+          ],
+        })(<Input placeholder="请输入" />)}
       </FormItem>
       <FormItem key="serialNum" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备编号">
         {form.getFieldDecorator('serialNum', {
-          rules: [{ required: true, message: '请输入设备名称！' }, { min: 10, message: '最长不能超过10字符' }],
-        })(<Input placeholder="请输入"/>)}
+          rules: [
+            { required: true, message: '请输入设备名称！' },
+            { min: 10, message: '最长不能超过10字符' },
+          ],
+        })(<Input placeholder="请输入" />)}
       </FormItem>
       <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备类型">
         {form.getFieldDecorator('deviceType', {
@@ -86,7 +82,7 @@ const CreateForm = Form.create()(props => {
             <Option value="1">注塑</Option>
             <Option value="2">电镀</Option>
             <Option value="3">组装</Option>
-          </Select>,
+          </Select>
         )}
       </FormItem>
       <FormItem key="moldIds" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="使用模具">
@@ -101,7 +97,7 @@ const CreateForm = Form.create()(props => {
             }}
             targetKeys={targetKeys}
             render={renderItem}
-          />,
+          />
         )}
       </FormItem>
     </Modal>
@@ -122,8 +118,6 @@ class EquipmentList extends PureComponent {
       current: 1,
       pageSize: 10,
     },
-    mockData: [],
-    targetKeys: [],
     formValues: {},
   };
 
@@ -194,7 +188,7 @@ class EquipmentList extends PureComponent {
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     const { pagination } = this.state;
     dispatch({
@@ -245,7 +239,7 @@ class EquipmentList extends PureComponent {
     dispatch({
       type: 'equip/remove',
       payload: { ids },
-      callback: (response) => {
+      callback: response => {
         if (response.code === 200) {
           message.success('删除成功');
           this.setState({ selectedRows: [] });
@@ -284,8 +278,10 @@ class EquipmentList extends PureComponent {
     const isAdd = !itemData.name;
     dispatch({
       type: isAdd ? 'equip/add' : 'equip/update',
-      payload: isAdd ? Object.assign(fields, { availableNum: fields.num }) : Object.assign(itemData, fields),
-      callback: (response) => {
+      payload: isAdd
+        ? Object.assign(fields, { availableNum: fields.num })
+        : Object.assign(itemData, fields),
+      callback: response => {
         if (response.code === 200) {
           message.success(isAdd ? '添加成功' : '更新成功');
           this.handleModalVisible();
@@ -297,7 +293,7 @@ class EquipmentList extends PureComponent {
     });
   };
 
-  render () {
+  render() {
     const {
       equip: { data },
       loading,
@@ -312,14 +308,17 @@ class EquipmentList extends PureComponent {
       <div>
         <Card bordered={false}>
           <div className={styles.tableList}>
-
             <Tabs defaultActiveKey="1" onChange={() => {}}>
               <TabPane tab="设备列表" key="1">
                 <div className={styles.tableListOperator}>
-                  <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>新增</Button>
+                  <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
+                    新增
+                  </Button>
                   {selectedRows.length > 0 && (
                     <span>
-                      <Button onClick={this.handleMenuClick} key='remove'>批量删除</Button>
+                      <Button onClick={this.handleMenuClick} key="remove">
+                        批量删除
+                      </Button>
                     </span>
                   )}
                 </div>
@@ -343,12 +342,11 @@ class EquipmentList extends PureComponent {
                   onChange={this.handleStandardTableChange}
                 />
               </TabPane>
-            </Tabs>,
-
-
+            </Tabs>
+            ,
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
+        <CreateForm {...parentMethods} modalVisible={modalVisible} />
       </div>
     );
   }

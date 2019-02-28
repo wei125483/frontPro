@@ -1,10 +1,8 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Card,
-  Form,
-} from 'antd';
+import { Card, Form } from 'antd';
 import StandardTable from '@/components/StandardTable';
+import moment from 'moment';
 
 import styles from './index.less';
 
@@ -13,14 +11,21 @@ const getValue = obj =>
     .map(key => obj[key])
     .join(',');
 
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ devicel, loading }) => ({
+  devicel,
+  loading: loading.models.devicel,
 }))
 @Form.create()
 class EquipmentList extends PureComponent {
   state = {
-    formValues: {},
+    formValues: {
+      startDate: '1970-01-01',
+      endDate: moment(new Date()).format('YYYY-MM-DD'),
+    },
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
   };
 
   columns = [
@@ -39,7 +44,8 @@ class EquipmentList extends PureComponent {
     {
       title: '01/01',
       dataIndex: 'street1',
-    }, {
+    },
+    {
       title: '01/01',
       dataIndex: 'street',
     },
@@ -63,16 +69,23 @@ class EquipmentList extends PureComponent {
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
+    const { formValues, pagination } = this.state;
     dispatch({
-      type: 'rule/fetch',
+      type: 'devicel/fetch',
+      payload: {
+        pageNum: pagination.current,
+        pageSize: pagination.pageSize,
+        ...formValues,
+      },
     });
   }
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
+  handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
+    this.setState({ pagination });
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
       const newObj = { ...obj };
@@ -91,14 +104,14 @@ class EquipmentList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'devicel/fetch',
       payload: params,
     });
   };
 
-  render () {
+  render() {
     const {
-      rule: { data },
+      devicel: { data },
       loading,
     } = this.props;
     return (

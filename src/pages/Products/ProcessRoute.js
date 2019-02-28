@@ -1,12 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Card,
-  Form,
-  Button,
-  Drawer,
-  message,
-} from 'antd';
+import { Card, Form, Button, Drawer, message } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import EditDrawer from './edit/index';
 
@@ -58,13 +52,11 @@ class ProcessRoute extends PureComponent {
     },
     {
       title: '操作',
-      render: (text, record) => (
-        <a>编辑</a>
-      ),
+      render: (text, record) => <a>编辑</a>,
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
       type: 'rule/fetch',
@@ -155,7 +147,7 @@ class ProcessRoute extends PureComponent {
     this.handleModalVisible();
   };
 
-  render () {
+  render() {
     const {
       rule: { data },
       loading,
@@ -167,10 +159,14 @@ class ProcessRoute extends PureComponent {
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
-              <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>新增</Button>
+              <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
+                新增
+              </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button onClick={this.handleMenuClick} key='remove'>批量删除</Button>
+                  <Button onClick={this.handleMenuClick} key="remove">
+                    批量删除
+                  </Button>
                 </span>
               )}
             </div>
@@ -184,11 +180,39 @@ class ProcessRoute extends PureComponent {
             />
           </div>
         </Card>
-        <Drawer title={<div><span>新增工艺路线</span>
-          <Button className={styles.DrawerSaveBtn} type="primary" size='small' icon="file-done">保存</Button></div>}
-                placement="right" width="100%" visible={modalVisible} destroyOnClose
-                onClose={this.onClose} bodyStyle={{ height: 'calc(100% - 55px)', padding: 0 }}>
-          <EditDrawer/>
+        <Drawer
+          title={
+            <div>
+              <span>新增工艺路线</span>
+              <Button
+                style={{ float: 'right', marginRight: '50px' }}
+                type="default"
+                size="small"
+                onClick={this.onClose}
+                icon="close-circle"
+              >
+                取消
+              </Button>
+              <Button
+                className={styles.DrawerSaveBtn}
+                onClick={this.onClose}
+                type="primary"
+                size="small"
+                icon="file-done"
+              >
+                保存
+              </Button>
+            </div>
+          }
+          placement="right"
+          width="100%"
+          visible={modalVisible}
+          closable={false}
+          destroyOnClose
+          onClose={this.onClose}
+          bodyStyle={{ height: 'calc(100% - 55px)', padding: 0 }}
+        >
+          <EditDrawer />
         </Drawer>
       </div>
     );

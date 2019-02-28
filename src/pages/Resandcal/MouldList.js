@@ -1,16 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Card,
-  Form,
-  Input,
-  Button,
-  Col,
-  Row,
-  Icon,
-  Modal,
-  InputNumber,
-} from 'antd';
+import { Card, Form, Input, Button, Col, Row, Icon, Modal, InputNumber } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
@@ -22,13 +12,20 @@ const getValue = obj =>
     .join(',');
 
 const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible, modalLenght, handleAddModalLenght } = props;
+  const {
+    modalVisible,
+    form,
+    handleAdd,
+    handleModalVisible,
+    modalLenght,
+    handleAddModalLenght,
+  } = props;
   const onAddMould = () => {
     const obj = modalLenght;
     obj.push({ id: new Date().getTime(), proId: '', proNum: '' });
     handleAddModalLenght(obj);
   };
-  const onDelMould = (index) => {
+  const onDelMould = index => {
     const obj = modalLenght;
     obj.splice(index, 1);
     handleAddModalLenght(obj);
@@ -53,59 +50,63 @@ const CreateForm = Form.create()(props => {
         <Col span={12}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具名称">
             {form.getFieldDecorator('name', {
-              rules: [{ required: true, message: '请输入模具名称！' },
-                { max: 20, message: '最长不能超过20字符' }],
-            })(<Input placeholder="请输入"/>)}
+              rules: [
+                { required: true, message: '请输入模具名称！' },
+                { max: 20, message: '最长不能超过20字符' },
+              ],
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具编号">
             {form.getFieldDecorator('serialNum', {
-              rules: [{ required: true, message: '请输入模具编号' },
+              rules: [
+                { required: true, message: '请输入模具编号' },
                 { max: 15, message: '最长不能超过15字符' },
                 { pattern: /^\w+$/, message: '请输入字母+数字组合' },
               ],
-            })(<Input placeholder="请输入"/>)}
+            })(<Input placeholder="请输入" />)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
             {form.getFieldDecorator('productIds', {
               rules: [{ required: true, message: '请输入产品编号！' }],
-            })(
-              <Input placeholder="请输入"/>,
-            )}
-            <Icon className={styles.formIcon} onClick={() => onAddMould()} type="plus-circle"/>
+            })(<Input placeholder="请输入" />)}
+            <Icon className={styles.formIcon} onClick={() => onAddMould()} type="plus-circle" />
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="穴数">
             {form.getFieldDecorator('amount', {
               rules: [{ required: true, message: '请输入穴数！' }],
-            })(
-              <InputNumber max={99} placeholder="请输入" style={{ 'width': '100%' }}/>,
-            )}
+            })(<InputNumber max={99} placeholder="请输入" style={{ width: '100%' }} />)}
           </FormItem>
         </Col>
-        {
-          modalLenght.map((item, index) => {
-            return (
-              <div key={index}>
-                <Col span={12}>
-                  <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label='产品编号'>
-                    {form.getFieldDecorator(`productIds${item.id}`, {
-                      rules: [{ required: true, message: '请输入产品编号！' }],
-                      initialValue: item.proId || '',
-                    })(
-                      <Input placeholder="请输入"/>,
-                    )}
-                    <Icon className={styles.formIcon} onClick={() => onDelMould(index)} type="minus-circle"/>
-                  </FormItem>
-                </Col>
-              </div>
-            );
-          })
-        }
+        {modalLenght.map((item, index) => {
+          return (
+            <div key={index}>
+              <Col span={12}>
+                <FormItem
+                  key="type"
+                  labelCol={{ span: 6 }}
+                  wrapperCol={{ span: 16 }}
+                  label="产品编号"
+                >
+                  {form.getFieldDecorator(`productIds${item.id}`, {
+                    rules: [{ required: true, message: '请输入产品编号！' }],
+                    initialValue: item.proId || '',
+                  })(<Input placeholder="请输入" />)}
+                  <Icon
+                    className={styles.formIcon}
+                    onClick={() => onDelMould(index)}
+                    type="minus-circle"
+                  />
+                </FormItem>
+              </Col>
+            </div>
+          );
+        })}
       </Row>
     </Modal>
   );
@@ -163,7 +164,7 @@ class MouldList extends PureComponent {
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     const { pagination } = this.state;
     dispatch({
@@ -242,7 +243,7 @@ class MouldList extends PureComponent {
   };
 
   // 添加addModalLenght
-  handleAddModalLenght = (array) => {
+  handleAddModalLenght = array => {
     this.setState({
       modalLenght: JSON.parse(JSON.stringify(array)),
     });
@@ -262,14 +263,14 @@ class MouldList extends PureComponent {
     // this.handleModalVisible();
   };
 
-  render () {
+  render() {
     const {
       mold: { data },
       loading,
     } = this.props;
     const { selectedRows, modalLenght, modalVisible } = this.state;
     const parentMethods = {
-      modalLenght: modalLenght,
+      modalLenght,
       handleAddModalLenght: this.handleAddModalLenght,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
@@ -284,7 +285,9 @@ class MouldList extends PureComponent {
               </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button onClick={this.handleMenuClick} key='remove'>批量删除</Button>
+                  <Button onClick={this.handleMenuClick} key="remove">
+                    批量删除
+                  </Button>
                 </span>
               )}
             </div>
@@ -298,7 +301,7 @@ class MouldList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
+        <CreateForm {...parentMethods} modalVisible={modalVisible} />
       </div>
     );
   }

@@ -45,31 +45,36 @@ const CreateForm = Form.create()(props => {
         <Col span={12}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="物料名称">
             {form.getFieldDecorator('materialName', {
-              rules: [{ required: true, message: '请输入物料名称！' }, { max: 30, message: '最长不能超过30字符' }],
-            })(<Input placeholder="请输入" maxLength={30}/>)}
+              rules: [
+                { required: true, message: '请输入物料名称！' },
+                { max: 30, message: '最长不能超过30字符' },
+              ],
+            })(<Input placeholder="请输入" maxLength={30} />)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="物料编号">
             {form.getFieldDecorator('materialId', {
-              rules: [{ required: true, message: '请输入物料编号！' },
+              rules: [
+                { required: true, message: '请输入物料编号！' },
                 { max: 20, message: '最长不能超过20字符' },
-                { pattern: /^\w+$/, message: '请输入字母+数字组合' }],
-            })(<Input placeholder="请输入" maxLength={20}/>)}
+                { pattern: /^\w+$/, message: '请输入字母+数字组合' },
+              ],
+            })(<Input placeholder="请输入" maxLength={20} />)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
             {form.getFieldDecorator('amount', {
               rules: [{ required: true, message: '请输入数量！' }],
-            })(<InputNumber placeholder="请输入" max={999999} style={{ 'width': '100%' }}/>)}
+            })(<InputNumber placeholder="请输入" max={999999} style={{ width: '100%' }} />)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="num" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="到货时间">
             {form.getFieldDecorator('arrivalDate', {
               rules: [{ required: true, message: '请输入到货时间！' }],
-            })(<DatePicker format='YYYY-MM-DD' style={{ 'width': '100%' }}/>)}
+            })(<DatePicker format="YYYY-MM-DD" style={{ width: '100%' }} />)}
           </FormItem>
         </Col>
       </Row>
@@ -125,14 +130,19 @@ class PurhaseList extends PureComponent {
     {
       title: '操作',
       render: (text, record) => (
-        <Popconfirm title="确认要废弃这条采购计划吗？" onConfirm={() => this.confirmDel(record)} okText="确定" cancelText="取消">
+        <Popconfirm
+          title="确认要废弃这条采购计划吗？"
+          onConfirm={() => this.confirmDel(record)}
+          okText="确定"
+          cancelText="取消"
+        >
           <a href="#">废弃</a>
         </Popconfirm>
       ),
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     const { pagination, reqParam } = this.state;
     dispatch({
@@ -181,7 +191,7 @@ class PurhaseList extends PureComponent {
     dispatch({
       type: 'purchase/remove',
       payload: { ids },
-      callback: (response) => {
+      callback: response => {
         if (response.code === 200) {
           message.success('废除成功');
         } else {
@@ -206,7 +216,7 @@ class PurhaseList extends PureComponent {
       payload: {
         ...Object.assign(fields, { arrivalDate: moment(fields.arrivalDate).format('YYYY-MM-DD') }),
       },
-      callback: (response) => {
+      callback: response => {
         if (response.code === 200) {
           message.success('添加成功');
         } else {
@@ -218,7 +228,7 @@ class PurhaseList extends PureComponent {
     });
   };
 
-  render () {
+  render() {
     const {
       purchase: { data },
       loading,
@@ -249,7 +259,7 @@ class PurhaseList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
+        <CreateForm {...parentMethods} modalVisible={modalVisible} />
       </div>
     );
   }
