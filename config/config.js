@@ -77,7 +77,7 @@ export default {
   },
   externals: {
     '@antv/data-set': 'DataSet',
-    bizcharts: 'BizCharts',
+    // bizcharts: 'BizCharts',
   },
   proxy: {
     '/server/api/': {

@@ -115,7 +115,7 @@ export default [
           {
             path: '/visualization/feeding',
             name: 'feeding',
-            component: './Visualization/FeedingList',
+            component: './Visualization/FeedingCharts',
           },
         ],
       },

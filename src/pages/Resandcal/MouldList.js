@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { Card, Form, Input, Button, Col, Row, Icon, Modal, InputNumber } from 'antd';
 import StandardTable from '@/components/StandardTable';
-
+import Ellipsis from '@/components/Ellipsis';
 import styles from './index.less';
 
 const FormItem = Form.Item;
@@ -151,7 +151,7 @@ class MouldList extends PureComponent {
       title: '产品编号',
       dataIndex: 'productSerialNum',
       render: val => {
-        return val.toString();
+        return (<Ellipsis lines={1} tooltip>{val.toString()}</Ellipsis>);
       },
     },
     {
