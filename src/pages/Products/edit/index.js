@@ -144,14 +144,10 @@ class Editor extends Component {
       if (!(ev.targetAnchor.type === 'input' && ev.sourceAnchor.type === 'output')) {
         ev.cancel = true;
       }
-      // 如果拖动的是目标方向，则取消显示目标节点中已被连过的锚点
-      if (ev.dragEndPointType === 'target' && page.anchorHasBeenLinked(ev.target, ev.targetAnchor)) {
-        ev.cancel = true;
-      }
-      // 如果拖动的是源方向，则取消显示源节点中已被连过的锚点
-      if (ev.dragEndPointType === 'source' && page.anchorHasBeenLinked(ev.source, ev.sourceAnchor)) {
-        ev.cancel = true;
-      }
+      // // 如果拖动的是源方向，则取消显示源节点中已被连过的锚点
+      // if (ev.dragEndPointType === 'source' && page.anchorHasBeenLinked(ev.source, ev.sourceAnchor)) {
+      //   ev.cancel = true;
+      // }
     });
 
     // 变更后
