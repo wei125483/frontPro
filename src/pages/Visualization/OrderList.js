@@ -51,84 +51,53 @@ const CreateForm = Form.create()(props => {
           <h3>产品</h3>
         </Col>
         <Col span={8}>
-          <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具名称">
+          <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="订单号">
             {form.getFieldDecorator('desc', {
-              rules: [{ required: true, message: '请输入至少五个字符的产品名称！', min: 5 }],
-            })(<Input placeholder="请输入" />)}
+              rules: [{ required: true, message: '请输入订单号' }],
+            })(<Input placeholder="请输入订单号" maxLength={20}/>)}
           </FormItem>
         </Col>
         <Col span={8}>
-          <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具编号">
+          <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="客户名称">
             {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+              rules: [{ required: true, message: '客户名称' }],
+            })(<Input placeholder="请输入客户名称"/>)}
           </FormItem>
         </Col>
         <Col span={8}>
-          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品名称">
+            {form.getFieldDecorator('productId', {
+              rules: [{ required: true, message: '请选择产品名称' }],
+            })(<Input placeholder="请输入产品名称"/>)}
           </FormItem>
-        </Col>
-        <Col span={24}>
-          <h3>产品BOM</h3>
         </Col>
         <Col span={12}>
-          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="料品编码">
+          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="下单日期">
             {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+              rules: [{ required: true, message: '请选择下单日期' }],
+            })(<Input placeholder="请选择下单日期"/>)}
+          </FormItem>
+        </Col>
+        <Col span={12}>
+          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="交货日期">
+            {form.getFieldDecorator('deliveryDate', {
+              rules: [{ required: true, message: '请选择交货日期' }],
+            })(<Input placeholder="请选择交货日期"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            {form.getFieldDecorator('amount', {
+              rules: [{ required: true, message: '请输入数量' }],
+            })(<Input placeholder="请输入数量"/>)}
           </FormItem>
         </Col>
-        {modalLenght.map((item, index) => {
-          return (
-            <div key={item.id}>
-              <Col span={12}>
-                <FormItem
-                  key="type"
-                  labelCol={{ span: 6 }}
-                  wrapperCol={{ span: 16 }}
-                  label="料品编码"
-                >
-                  {form.getFieldDecorator(`desc${item.id}`, {
-                    rules: [{ required: true }],
-                    initialValue: item.proId || '',
-                  })(<Input placeholder="请输入" />)}
-                </FormItem>
-              </Col>
-              <Col span={12}>
-                <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
-                  {form.getFieldDecorator(`num${item.id}`, {
-                    rules: [{ required: true }],
-                    initialValue: item.proNum || '',
-                  })(<Input placeholder="请输入" />)}
-                  <Icon
-                    className={styles.formIcon}
-                    onClick={() => onDelMould(index)}
-                    type="minus-circle"
-                  />
-                </FormItem>
-              </Col>
-            </div>
-          );
-        })}
-        <Col span={24}>
-          <Button
-            style={{ width: '100%', marginTop: 16, marginBottom: 8 }}
-            type="dashed"
-            onClick={onAddMould}
-            icon="plus"
-          >
-            新增一条BOM
-          </Button>
+        <Col span={12}>
+          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="优先级">
+            {form.getFieldDecorator('priority', {
+              rules: [{ required: true, message: '请输入优先级' }],
+            })(<Input placeholder="请输入优先级"/>)}
+          </FormItem>
         </Col>
       </Row>
     </Modal>
@@ -136,9 +105,9 @@ const CreateForm = Form.create()(props => {
 });
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ order, loading }) => ({
+  order,
+  loading: loading.models.order,
 }))
 @Form.create()
 class OrderList extends PureComponent {
@@ -151,41 +120,43 @@ class OrderList extends PureComponent {
 
   columns = [
     {
-      title: '序号',
+      title: '订单ID',
       dataIndex: 'id',
-    },
-    {
-      title: '产品名称',
-      dataIndex: 'name',
     },
     {
       title: '产品编号',
       dataIndex: 'desc',
     },
     {
-      title: '配置产品编码',
+      title: '产品名称',
       dataIndex: 'street1',
     },
     {
-      title: '数量',
+      title: '需求数量',
       dataIndex: 'street',
     },
     {
-      title: '规格',
+      title: '交货日期',
       dataIndex: 'callNo1',
-      render: val => `${val} 万`,
     },
     {
-      title: '类型',
+      title: '现有库存',
       dataIndex: 'callNo',
-      render: val => `${val} 万`,
     },
     {
-      title: '创建时间',
+      title: '供需差额',
+      dataIndex: 'callNo',
+    },
+    {
+      title: '距交期天数',
+      dataIndex: 'callNo',
+    },
+    {
+      title: '优先级',
       dataIndex: 'updatedAt',
     },
     {
-      title: '创建人',
+      title: '状态',
       dataIndex: 'desc2',
     },
   ];
@@ -193,7 +164,7 @@ class OrderList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'order/fetch',
     });
   }
 
@@ -218,7 +189,7 @@ class OrderList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'order/fetch',
       payload: params,
     });
   };
@@ -232,7 +203,7 @@ class OrderList extends PureComponent {
     switch (e.key) {
       case 'remove':
         dispatch({
-          type: 'rule/remove',
+          type: 'order/remove',
           payload: {
             key: selectedRows.map(row => row.key),
           },
@@ -273,7 +244,7 @@ class OrderList extends PureComponent {
   handleAdd = fields => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/add',
+      type: 'order/add',
       payload: {
         desc: fields.desc,
       },
@@ -285,7 +256,7 @@ class OrderList extends PureComponent {
 
   render() {
     const {
-      rule: { data },
+      order: { data },
       loading,
     } = this.props;
     const { selectedRows, modalLenght, modalVisible } = this.state;
@@ -324,7 +295,7 @@ class OrderList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
+        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>
     );
   }

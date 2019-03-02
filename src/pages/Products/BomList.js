@@ -1,10 +1,11 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Input, Button, Col, Row, Icon, Modal, message } from 'antd';
+import { Card, Form, Input, Button, Col, Row, Icon, Modal, Select, message } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
 
+const { Option } = Select;
 const FormItem = Form.Item;
 const getValue = obj =>
   Object.keys(obj)
@@ -16,10 +17,12 @@ const CreateForm = Form.create()(props => {
     modalVisible,
     form,
     handleAdd,
+    state,
     handleModalVisible,
-    modalLenght,
     handleAddModalLenght,
   } = props;
+
+  const { modalLenght, productList } = state;
   const onAddMould = () => {
     const obj = modalLenght;
     obj.push({ id: new Date().getTime(), proId: '', proNum: '' });
@@ -50,25 +53,29 @@ const CreateForm = Form.create()(props => {
         <Col span={24}>
           <h3>产品</h3>
         </Col>
-        <Col span={8}>
-          <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具名称">
-            {form.getFieldDecorator('desc', {
+        <Col span={12}>
+          <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品名称">
+            {form.getFieldDecorator('prodId', {
               rules: [{ required: true, message: '请输入至少五个字符的产品名称！', min: 5 }],
-            })(<Input placeholder="请输入" />)}
+            })(<Select style={{ width: '100%' }}>
+              {
+                productList.map((item, index) => {
+                  return (<Option key={item.serial_num} value={index}>{item.materialName}</Option>);
+                })
+              }
+            </Select>)}
           </FormItem>
         </Col>
-        <Col span={8}>
-          <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="模具编号">
-            {form.getFieldDecorator('desc', {
+        <Col span={12}>
+          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品类型">
+            {form.getFieldDecorator('productType', {
+              initialValue: 1,
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
-          </FormItem>
-        </Col>
-        <Col span={8}>
-          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
-            {form.getFieldDecorator('desc', {
-              rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Select placeholder="请选择产品类型" style={{ width: '100%' }}>
+              <Option value={1}>原料</Option>
+              <Option value={2}>半成品</Option>
+              <Option value={3}>成品</Option>
+            </Select>)}
           </FormItem>
         </Col>
         <Col span={24}>
@@ -78,14 +85,14 @@ const CreateForm = Form.create()(props => {
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="料品编码">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
             {form.getFieldDecorator('desc', {
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         {modalLenght.map((item, index) => {
@@ -101,7 +108,7 @@ const CreateForm = Form.create()(props => {
                   {form.getFieldDecorator(`desc${item.id}`, {
                     rules: [{ required: true }],
                     initialValue: item.proId || '',
-                  })(<Input placeholder="请输入" />)}
+                  })(<Input placeholder="请输入"/>)}
                 </FormItem>
               </Col>
               <Col span={12}>
@@ -109,24 +116,15 @@ const CreateForm = Form.create()(props => {
                   {form.getFieldDecorator(`num${item.id}`, {
                     rules: [{ required: true }],
                     initialValue: item.proNum || '',
-                  })(<Input placeholder="请输入" />)}
-                  <Icon
-                    className={styles.formIcon}
-                    onClick={e => onDelMould(index)}
-                    type="minus-circle"
-                  />
+                  })(<Input placeholder="请输入"/>)}
+                  <Icon className={styles.formIcon} onClick={e => onDelMould(index)} type="minus-circle"/>
                 </FormItem>
               </Col>
             </div>
           );
         })}
         <Col span={24}>
-          <Button
-            style={{ width: '100%', marginTop: 16, marginBottom: 8 }}
-            type="dashed"
-            onClick={onAddMould}
-            icon="plus"
-          >
+          <Button style={{ width: '100%', marginTop: 16, marginBottom: 8 }} type="dashed" onClick={onAddMould} icon="plus">
             新增一条BOM
           </Button>
         </Col>
@@ -143,9 +141,11 @@ const CreateForm = Form.create()(props => {
 @Form.create()
 class BomList extends PureComponent {
   state = {
-    modalVisible: false,
+    modalVisible: true,
     selectedRows: [],
     modalLenght: [],
+    productList: [],
+    resourceList: [],
     pagination: {
       current: 1,
       pageSize: 10,
@@ -206,6 +206,33 @@ class BomList extends PureComponent {
     const { dispatch } = this.props;
     dispatch({
       type: 'boms/fetch',
+    });
+
+    const that = this;
+    // 查询所有产品信息
+    dispatch({
+      type: 'resource/fetchBrief',
+      payload: { type: 1 },
+      callback(response) {
+        const { data, code } = response;
+        if (code == '200') {
+          that.setState({
+            productList: data,
+          });
+        }
+      },
+    });
+    dispatch({
+      type: 'resource/fetchBrief',
+      payload: { type: 0 },
+      callback(response) {
+        const { data, code } = response;
+        if (code == '200') {
+          that.setState({
+            productList: data,
+          });
+        }
+      },
     });
   }
 
@@ -301,9 +328,9 @@ class BomList extends PureComponent {
       boms: { data },
       loading,
     } = this.props;
-    const { selectedRows, modalLenght, modalVisible } = this.state;
+    const { selectedRows, modalVisible } = this.state;
     const parentMethods = {
-      modalLenght,
+      state: this.state,
       handleAddModalLenght: this.handleAddModalLenght,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
@@ -334,7 +361,7 @@ class BomList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
+        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>
     );
   }

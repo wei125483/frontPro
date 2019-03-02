@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Button, Drawer,Select, message, Input } from 'antd';
+import { Card, Form, Button, Drawer, Select, message, Input } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import EditDrawer from './edit/index';
 
@@ -22,8 +22,9 @@ const getValue = obj =>
 @Form.create()
 class ProcessRoute extends PureComponent {
   state = {
-    modalVisible: false,
+    modalVisible: true,
     selectedRows: [],
+    processList: [], // 所有工艺列表
     pagination: {
       current: 1,
       pageSize: 10,
@@ -65,10 +66,15 @@ class ProcessRoute extends PureComponent {
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
+    const { pagination } = this.state;
     dispatch({
       type: 'proRoutes/fetch',
+      payload: {
+        pageNum: pagination.current,
+        pageSize: pagination.pageSize,
+      },
     });
   }
 
@@ -162,13 +168,14 @@ class ProcessRoute extends PureComponent {
     // this.handleModalVisible();
   };
 
-  render () {
+  render() {
     const {
       proRoutes: { data },
       loading,
       form,
     } = this.props;
     const { selectedRows, modalVisible } = this.state;
+    const { dispatch } = this.props;
 
     return (
       <div>
@@ -210,13 +217,13 @@ class ProcessRoute extends PureComponent {
               <FormItem key="type" label="产品名称">
                 {form.getFieldDecorator('product', {
                   initialValue: 1,
-                  rules: [{ required: true, message: '请选择产品名称！'  }],
+                  rules: [{ required: true, message: '请选择产品名称！' }],
                 })(
                   <Select style={{ width: '160px' }} placeholder="请选择">
                     <Option value={1}>原料</Option>
                     <Option value={2}>半成品</Option>
                     <Option value={3}>成品</Option>
-                  </Select>
+                  </Select>,
                 )}
               </FormItem>
               <Button style={{ float: 'right', margin: '10px 50px 0 0' }} type="default" size="small"
@@ -233,7 +240,7 @@ class ProcessRoute extends PureComponent {
           onClose={this.onClose}
           bodyStyle={{ height: 'calc(100% - 74px)', overflowX: 'hidden', padding: 0 }}
         >
-          <EditDrawer/>
+          <EditDrawer dispatch={dispatch} data={this.processList}/>
         </Drawer>
       </div>
     );

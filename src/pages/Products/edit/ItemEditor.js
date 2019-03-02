@@ -2,43 +2,43 @@ import React, { Component } from 'react';
 import { Input, Form, Select } from 'antd';
 
 const { Option } = Select.Option;
-const { TextArea } = Input;
 
 export default class ItemEditor extends Component {
+
   render() {
-    const { data, getFieldDecorator } = this.props;
-    const hideFileds = ['id', 'name'];
-    const areaFileds = ['fields', 'rule'];
-    const getItem = dt => {
-      if (areaFileds.indexOf(dt.name) > -1) {
-        return <TextArea rows={4} />;
-      }
-      if (Array.isArray(dt.value)) {
-        return (
-          <Select mode="multiple" style={{ width: '100%' }}>
-            {dt.value.map(item => (
-              <Option key={item}>{item}</Option>
-            ))}
-          </Select>
-        );
-      }
-      return <Input />;
-    };
+    const { itemData = {}, resourceList = [], equipList = [], getFieldDecorator } = this.props;
+    console.log(resourceList,equipList);
+    return <React.Fragment>
+      <Form.Item label='工序产出产品' key={0}>
+        {getFieldDecorator('produceId', {
+          initialValue: itemData.produceId || '',
+        })(<Select style={{ width: '100%' }} showSearch placeholder="请选择产品" optionFilterProp="children">
+            {/*{*/}
+              {/*resourceList.map(item => {*/}
+                {/*return (<Option key={item.serial_num} value={item.materialId}>{item.materialName}</Option>);*/}
+              {/*})*/}
+            {/*}*/}
+          </Select>,
+        )}
+      </Form.Item>
+      <Form.Item label='生产设备' key={1}>
+        {getFieldDecorator('deviceId', {
+          initialValue: itemData.deviceId || '',
+        })(<Select style={{ width: '100%' }}>
+            {/*{*/}
+              {/*equipList.map(item => {*/}
+                {/*return (<Option key={item.serialNum} value={item.deviceId}>{item.deviceName}</Option>);*/}
+              {/*})*/}
+            {/*}*/}
+          </Select>,
+        )}
+      </Form.Item>
 
-    const input = data.map(dt => {
-      return (
-        <Form.Item
-          label={dt.name}
-          key={dt.name}
-          style={{ display: hideFileds.indexOf(dt.name) > -1 ? 'none' : 'block' }}
-        >
-          {getFieldDecorator(dt.name, {
-            initialValue: dt.value || '',
-          })(getItem(dt))}
-        </Form.Item>
-      );
-    });
-
-    return <React.Fragment>{input}</React.Fragment>;
+      <Form.Item label='转序数量' key={2}>
+        {getFieldDecorator('minNum', {
+          initialValue: itemData.minNum || '',
+        })(<Input/>)}
+      </Form.Item>
+    </React.Fragment>;
   }
 }

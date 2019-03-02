@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Input, Select, Tabs, Button, Transfer, Modal, message } from 'antd';
+import { Card, Form, Input, Select, Row, Col, Tabs, Button, DatePicker, Modal, message } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
+import moment from 'moment';
 
 const FormItem = Form.Item;
 const { TabPane } = Tabs;
@@ -14,88 +15,121 @@ const getValue = obj =>
     .join(',');
 
 const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible } = props;
+  const { form, handleAdd, state, handleModalVisible, changeWeeks } = props;
+  const { modalVisible, moldList, itemData, weeks, weekCheckout } = state;
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
-      form.resetFields();
-      handleAdd(fieldsValue);
+      fieldsValue.activeTime = moment(fieldsValue.activeTime).format('YYYY-MM-DD');
+      fieldsValue.moldIds = `[${fieldsValue.moldIds.toString()}]`;
+      handleAdd(fieldsValue, form);
     });
   };
-  const targetKeys = [];
-  const mockData = [];
-  for (let i = 0; i < 20; i += 1) {
-    const data = {
-      key: i.toString(),
-      title: `content${i + 1}`,
-      description: `description ${i + 1}`,
-      chosen: Math.random() * 2 > 1,
-    };
-    if (data.chosen) {
-      targetKeys.push(data.key);
-    }
-    mockData.push(data);
-  }
-  const renderItem = item => {
-    const customLabel = (
-      <span className="custom-item">
-        {item.title} - {item.description}
-      </span>
-    );
 
-    return {
-      label: customLabel, // for displayed item
-      value: item.title, // for title and filter matching
-    };
-  };
+  const moldInitV = {};
+  if (itemData.moldIds && itemData.moldIds.split(',').length) {
+    moldInitV.initialValue = itemData.moldIds.split(',');
+  }
 
   return (
-    <Modal
-      destroyOnClose
-      title="新增设备"
-      width="600px"
-      visible={modalVisible}
-      onOk={okHandle}
-      onCancel={() => handleModalVisible()}
-    >
-      <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备名称">
-        {form.getFieldDecorator('name', {
-          rules: [
-            { required: true, message: '请输入设备名称！' },
-            { min: 15, message: '最长不能超过15字符' },
-          ],
-        })(<Input placeholder="请输入" />)}
-      </FormItem>
-      <FormItem key="serialNum" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备编号">
-        {form.getFieldDecorator('serialNum', {
-          rules: [
-            { required: true, message: '请输入设备名称！' },
-            { min: 10, message: '最长不能超过10字符' },
-          ],
-        })(<Input placeholder="请输入" />)}
-      </FormItem>
-      <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备类型">
-        {form.getFieldDecorator('deviceType', {
-          rules: [{ required: true, message: '请输入设备类型！' }],
-        })(
-          <Select style={{ width: '100%' }}>
-            <Option value="1">注塑</Option>
-            <Option value="2">电镀</Option>
-            <Option value="3">组装</Option>
-          </Select>
-        )}
-      </FormItem>
-      <FormItem key="moldIds" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="使用模具">
-        {form.getFieldDecorator('moldIds', {
-          rules: [{ required: true, message: '请输入使用模具！' }],
-        })(
-          <Select style={{ width: '100%' }} mode="multiple">
-            <Option value="1">模具1</Option>
-            <Option value="2">模具2</Option>
-            <Option value="3">模具3</Option>
-          </Select>
-        )}
-      </FormItem>
+    <Modal destroyOnClose title={itemData.moldIds?'修改设备信息':'新增信息'} width={720} visible={modalVisible} onOk={okHandle}
+           onCancel={() => handleModalVisible()}>
+      <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+        <Col span={12}>
+          <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备名称">
+            {form.getFieldDecorator('name', {
+              initialValue: itemData.name || '',
+              rules: [
+                { required: true, message: '请输入设备名称！' },
+                { max: 15, message: '最长不能超过15字符' },
+              ],
+            })(<Input placeholder="请输入" maxLength={15}/>)}
+          </FormItem>
+        </Col>
+        <Col span={12}>
+          <FormItem key="serialNum" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备编号">
+            {form.getFieldDecorator('serialNum', {
+              initialValue: itemData.serialNum || '',
+              rules: [
+                { required: true, message: '请输入设备名称！' },
+                { max: 10, message: '最长不能超过10字符' },
+              ],
+            })(<Input placeholder="请输入" maxLength={10}/>)}
+          </FormItem>
+        </Col>
+        <Col span={12}>
+          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="设备类型">
+            {form.getFieldDecorator('deviceType', {
+              initialValue: itemData.deviceType || '1',
+              rules: [{ required: true, message: '请输入设备类型！' }],
+            })(
+              <Select style={{ width: '100%' }}>
+                <Option value="1">注塑</Option>
+                <Option value="2">电镀</Option>
+                <Option value="3">组装</Option>
+              </Select>,
+            )}
+          </FormItem>
+        </Col>
+        <Col span={12}>
+          <FormItem key="moldIds" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="适用模具">
+            {form.getFieldDecorator('moldIds', {
+              ...moldInitV,
+              rules: [{ required: true, message: '请选择适用模具！' }],
+            })(
+              <Select style={{ width: '100%' }} mode="multiple" showSearch optionFilterProp="children">
+                {
+                  moldList.map(item => {
+                    return (<Option key={item.serialNum} value={item.moldId}>{item.moldName}</Option>);
+                  })
+                }
+              </Select>,
+            )}
+          </FormItem>
+        </Col>
+        <Col span={12}>
+          <FormItem key="moldIds" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="开始周期">
+            {form.getFieldDecorator('weekStart', {
+              initialValue: itemData.weekStart || 1,
+            })(
+              <Select style={{ width: '100%' }} onChange={changeWeeks}>
+                {
+                  weeks.map((item, index) => {
+                    return (<Option key={`start${item.index}`} value={index + 1}>{item}</Option>);
+                  })
+                }
+              </Select>,
+            )}
+          </FormItem>
+        </Col>
+        <Col span={12}>
+          <FormItem key="moldIds" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="结束周期">
+            {form.getFieldDecorator('weekEnd', {
+              initialValue: itemData.weekEnd || '',
+              rules: [{ required: true, message: '请选择结束周期！' }],
+            })(
+              <Select style={{ width: '100%' }}>
+                {
+                  weeks.map((item, index) => {
+                    return (<Option key={`end${item.index}`} disabled={weekCheckout > index + 1}
+                                    value={index + 1}>{item}</Option>);
+                  })
+                }
+              </Select>,
+            )}
+          </FormItem>
+        </Col>
+        <Col span={12}>
+          <FormItem key="moldIds" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="截止日期">
+            {form.getFieldDecorator('activeTime', {
+              initialValue: itemData.activeTime || '',
+              rules: [{ required: true, message: '请输入截止日期！' }],
+            })(
+              <DatePicker format="YYYY-MM-DD" style={{ width: '100%' }}/>,
+            )}
+          </FormItem>
+        </Col>
+      </Row>
     </Modal>
   );
 });
@@ -110,6 +144,10 @@ class EquipmentList extends PureComponent {
   state = {
     modalVisible: false,
     selectedRows: [],
+    itemData: {},
+    moldList: [],
+    weeks: ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期天'],
+    weekCheckout: 0,
     pagination: {
       current: 1,
       pageSize: 10,
@@ -170,17 +208,22 @@ class EquipmentList extends PureComponent {
       dataIndex: 'serialNum',
     },
     {
-      title: '日历模式',
-      dataIndex: 'callNo',
-      render: val => `${val} 万`,
+      title: '周重复开始时间',
+      dataIndex: 'weekStart',
+      render: (v = 1) => {
+        return this.state.weeks[v - 1];
+      },
     },
     {
-      title: '时间',
-      dataIndex: 'desc1',
+      title: '周重复结束时间',
+      dataIndex: 'weekEnd',
+      render: (v = 1) => {
+        return this.state.weeks[v - 1];
+      },
     },
     {
-      title: '日历',
-      dataIndex: 'desc2',
+      title: '截止时间',
+      dataIndex: 'activeTime',
     },
   ];
 
@@ -191,6 +234,22 @@ class EquipmentList extends PureComponent {
       type: 'equip/fetch',
       payload: {
         ...pagination,
+      },
+    });
+
+    const that = this;
+
+    // 查询所有模具信息
+    dispatch({
+      type: 'mold/fetchBrief',
+      payload: {},
+      callback(response) {
+        const { data, code } = response;
+        if (code == '200') {
+          that.setState({
+            moldList: data,
+          });
+        }
       },
     });
   }
@@ -268,24 +327,31 @@ class EquipmentList extends PureComponent {
     });
   };
 
-  handleAdd = fields => {
+  handleAdd = (fields, form) => {
+
     const { dispatch } = this.props;
     const { itemData, pagination } = this.state;
-    const isAdd = !itemData.name;
+    const isAdd = !itemData.id;
+    const param = Object.assign(fields, { 'moldIds': fields.moldIds.toString() });
     dispatch({
       type: isAdd ? 'equip/add' : 'equip/update',
-      payload: isAdd
-        ? Object.assign(fields, { availableNum: fields.num })
-        : Object.assign(itemData, fields),
+      payload: isAdd ? param : Object.assign(itemData, fields),
       callback: response => {
         if (response.code === 200) {
+          form.resetFields();
           message.success(isAdd ? '添加成功' : '更新成功');
           this.handleModalVisible();
-          this.handleStandardTableChange(pagination);
         } else {
           message.warning(response.message);
         }
+        this.handleStandardTableChange(pagination);
       },
+    });
+  };
+
+  changeWeeks = (v) => {
+    this.setState({
+      weekCheckout: v,
     });
   };
 
@@ -297,6 +363,8 @@ class EquipmentList extends PureComponent {
     const { selectedRows, modalVisible } = this.state;
 
     const parentMethods = {
+      state: this.state,
+      changeWeeks: this.changeWeeks,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
     };
@@ -304,7 +372,8 @@ class EquipmentList extends PureComponent {
       <div>
         <Card bordered={false}>
           <div className={styles.tableList}>
-            <Tabs defaultActiveKey="1" onChange={() => {}}>
+            <Tabs defaultActiveKey="1" onChange={() => {
+            }}>
               <TabPane tab="设备列表" key="1">
                 <div className={styles.tableListOperator}>
                   <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
@@ -342,7 +411,7 @@ class EquipmentList extends PureComponent {
             ,
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
+        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>
     );
   }

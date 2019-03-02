@@ -8,7 +8,7 @@ import mark2 from './mark2.svg';
 
 // 注册模型卡片基类
 Flow.registerNode('model-card', {
-  draw (item) {
+  draw(item) {
     const group = item.getGraphicGroup();
     const model = item.getModel();
     const width = 184;
@@ -68,12 +68,15 @@ Flow.registerNode('model-card', {
 });
 
 class Editor extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
     this.editor = new G6Editor();
     this.state = {
       dataList: [], // 存储内容
       relation: {},
+      processList: [],
+      resourceList: [], // 产品下拉列表
+      equipList: [],// 设备下拉列表
       data: [
         {
           id: '1',
@@ -119,7 +122,7 @@ class Editor extends Component {
     };
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const page = this.editor.getCurrentPage();
     // 显示网格线
     page.showGrid();
@@ -158,7 +161,7 @@ class Editor extends Component {
       const getItem = item => {
         let Obj = null;
         for (let i = 0; i < data.length; i++) {
-          if (data[i].id === item.shape) {
+          if (data[i].id == item.shape) {
             Obj = JSON.parse(JSON.stringify(data[i]));
             Obj.id = item.id;
             break;
@@ -192,26 +195,59 @@ class Editor extends Component {
       }
     });
 
-    // 初始化
-    const { data, relation } = this.state;
-    const list = [];
-    data.forEach(dt => {
-      this.registerNode(dt);
-      // 需要页面加载完成之后渲染有数据的
-      if (relation.nodes && relation.nodes.length > 0) {
-        page.read(relation);
-        relation.nodes.map(item => {
-          let obj = {};
-          if (item.shape === dt.id) {
-            obj = JSON.parse(JSON.stringify(dt));
-            obj.id = item.id;
-            list.push(obj);
+    const that = this;
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'crafts/fetch',
+      payload: {
+        pageNum: 1,
+        pageSize: 1000,
+      },
+      callback(resp) {
+        const { list } = resp;
+        that.setState({ data: list });
+
+        // 初始化
+        const { relation } = that.state;
+        const listArr = [];
+        list.forEach(dt => {
+          that.registerNode(dt);
+          // 需要页面加载完成之后渲染有数据的
+          if (relation.nodes && relation.nodes.length > 0) {
+            page.read(relation);
+            relation.nodes.map(item => {
+              let obj = {};
+              if (item.shape === dt.id) {
+                obj = JSON.parse(JSON.stringify(dt));
+                obj.id = item.id;
+                listArr.push(obj);
+              }
+              return obj;
+            });
           }
-          return obj;
         });
-      }
+        that.setState({ dataList: listArr });
+      },
     });
-    this.setState({ dataList: list });
+
+    // 查询所有产品信息
+    dispatch({
+      type: 'resource/fetchBrief',
+      payload: { type: 2 },
+      callback(response) {
+        const { data, code } = response;
+        code == '200' && that.setState({ resourceList: data });
+      },
+    });
+
+    // 查询所有设备信息
+    dispatch({
+      type: 'equip/fetchBrief',
+      callback(response) {
+        const { data, code } = response;
+        code == '200' && that.setState({ equipList: data });
+      },
+    });
   }
 
   registerNode = dt => {
@@ -266,12 +302,14 @@ class Editor extends Component {
     // console.log('父类ID为：', parentData);
   };
 
-  render () {
-    const { relation, dataList, data } = this.state;
+  render() {
+    const { relation, dataList, data, resourceList, equipList } = this.state;
     return (
       <div className={styles.editor}>
         <ItemPannel editor={this.editor} data={data}/>
         <Page
+          resourceList={resourceList}
+          equipList={equipList}
           relation={relation}
           callBack={this.callBack}
           editor={this.editor}

@@ -1,4 +1,4 @@
-import { queryMold, addMold, delMold, updateMold } from '@/services/api';
+import { queryMold, queryMoldBrief, addMold, delMold, updateMold } from '@/services/api';
 
 export default {
   namespace: 'mold',
@@ -11,7 +11,7 @@ export default {
   },
 
   effects: {
-    * fetch ({ payload }, { call, put }) {
+    * fetch({ payload }, { call, put }) {
       const response = yield call(queryMold, payload);
       const resData = {
         list: response.data.list || [],
@@ -26,7 +26,15 @@ export default {
         payload: resData,
       });
     },
-    * add ({ payload, callback }, { call, put }) {
+    * fetchBrief({ payload, callback }, { call, put }) {
+      const response = yield call(queryMoldBrief, payload);
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+      if (callback) callback(response);
+    },
+    * add({ payload, callback }, { call, put }) {
       const response = yield call(addMold, payload);
       yield put({
         type: 'save',
@@ -34,7 +42,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * remove ({ payload, callback }, { call, put }) {
+    * remove({ payload, callback }, { call, put }) {
       const response = yield call(delMold, payload);
       yield put({
         type: 'save',
@@ -42,7 +50,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * update ({ payload, callback }, { call, put }) {
+    * update({ payload, callback }, { call, put }) {
       const response = yield call(updateMold, payload);
       yield put({
         type: 'save',
@@ -53,7 +61,7 @@ export default {
   },
 
   reducers: {
-    save (state, action) {
+    save(state, action) {
       return {
         ...state,
         data: action.payload,

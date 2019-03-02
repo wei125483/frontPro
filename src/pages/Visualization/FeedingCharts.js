@@ -1,8 +1,24 @@
 import React, { PureComponent } from 'react';
 import { Chart, Geom, Axis, Tooltip, Label } from 'bizcharts';
+import { connect } from 'dva';
 
+@connect(({ materials, loading }) => ({
+  materials,
+  loading: loading.models.materials,
+}))
 class FeedingCharts extends PureComponent {
-  render () {
+
+  componentDidMount() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'materials/fetch',
+      payload: { startDate: '2018-01-01', endDate: '2019-04-01' },
+    });
+  }
+
+  render() {
+    const { materials: { rrrr }, loading } = this.props;
+
     const data = [
       [0, 0, 10],
       [0, 1, 19],

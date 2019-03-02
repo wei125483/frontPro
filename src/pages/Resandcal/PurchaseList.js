@@ -5,6 +5,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Select,
   Button,
   DatePicker,
   Popconfirm,
@@ -17,6 +18,7 @@ import StandardTable from '@/components/StandardTable';
 import moment from 'moment';
 import styles from './index.less';
 
+const { Option } = Select;
 const FormItem = Form.Item;
 const getValue = obj =>
   Object.keys(obj)
@@ -24,12 +26,12 @@ const getValue = obj =>
     .join(',');
 
 const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible } = props;
+  const { modalVisible, form, handleAdd, handleModalVisible, resourceList } = props;
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
       form.resetFields();
-      handleAdd(fieldsValue);
+      handleAdd(Object.assign(fieldsValue,{arrivalDate:moment(fieldsValue.arrivalDate).format('YYYY-MM-DD')}));
     });
   };
   return (
@@ -44,24 +46,38 @@ const CreateForm = Form.create()(props => {
       <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
         <Col span={12}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="物料名称">
-            {form.getFieldDecorator('materialName', {
+            {form.getFieldDecorator('materialId', {
               rules: [
-                { required: true, message: '请输入物料名称！' },
-                { max: 30, message: '最长不能超过30字符' },
+                { required: true, message: '请选择物料名称！' },
+                // { max: 30, message: '最长不能超过30字符' },
               ],
-            })(<Input placeholder="请输入" maxLength={30}/>)}
+            })(
+              <Select
+                style={{ width: '100%' }}
+                showSearch
+                placeholder="请选择物料"
+                optionFilterProp="children"
+              >
+                {
+                  resourceList.map(item => {
+                    return (<Option key={item.materialId} value={item.materialId}>{item.materialName}</Option>);
+                  })
+                }
+              </Select>,
+            )}
           </FormItem>
         </Col>
         <Col span={12}>
-          <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="物料编号">
-            {form.getFieldDecorator('materialId', {
-              rules: [
-                { required: true, message: '请输入物料编号！' },
-                { max: 20, message: '最长不能超过20字符' },
-                { pattern: /^\w+$/, message: '请输入字母+数字组合' },
-              ],
-            })(<Input placeholder="请输入" maxLength={20}/>)}
-          </FormItem>
+          {/*<FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="物料编号">*/}
+          {/*{form.getFieldDecorator('materialId', {*/}
+          {/*initialValue: item.proId || '',*/}
+          {/*rules: [*/}
+          {/*{ required: true, message: '请输入物料编号！' },*/}
+          {/*{ max: 20, message: '最长不能超过20字符' },*/}
+          {/*{ pattern: /^\w+$/, message: '请输入字母+数字组合' },*/}
+          {/*],*/}
+          {/*})(<Input placeholder="请先选择物料名称" disabled maxLength={20}/>)}*/}
+          {/*</FormItem>*/}
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
@@ -143,7 +159,7 @@ class PurhaseList extends PureComponent {
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     const { pagination, reqParam } = this.state;
     dispatch({
@@ -154,19 +170,21 @@ class PurhaseList extends PureComponent {
         ...reqParam,
       },
     });
+    const that = this;
 
     // 查询所有库存物料信息
     dispatch({
       type: 'resource/fetchBrief',
-      payload: {},
-      callback (response) {
+      payload: {
+        type: 2,
+      },
+      callback(response) {
         const { data, code } = response;
-        if (code === '200') {
-          this.setState({
+        if (code == '200') {
+          that.setState({
             resourceList: data,
           });
         }
-        console.log(response, '==============');
       },
     });
   }
@@ -230,7 +248,7 @@ class PurhaseList extends PureComponent {
     dispatch({
       type: 'purchase/add',
       payload: {
-        ...Object.assign(fields, { arrivalDate: moment(fields.arrivalDate).format('YYYY-MM-DD') }),
+        ...fields,
       },
       callback: response => {
         if (response.code === 200) {
@@ -244,14 +262,14 @@ class PurhaseList extends PureComponent {
     });
   };
 
-  render () {
+  render() {
     const {
       purchase: { data },
       loading,
     } = this.props;
-    const { modalVisible } = this.state;
-
+    const { modalVisible, resourceList } = this.state;
     const parentMethods = {
+      resourceList,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
     };

@@ -6,11 +6,11 @@ import request from '@/utils/request';
  * @param params
  * @returns {Promise<void>}
  */
-export async function queryResource (params) {
+export async function queryResource(params) {
   return request(`/server/aps/resource/materiel/list?${stringify(params)}`);
 }
 
-export async function addResource (params) {
+export async function addResource(params) {
   return request('/server/aps/resource/materiel/save', {
     method: 'POST',
     body: {
@@ -19,7 +19,7 @@ export async function addResource (params) {
   });
 }
 
-export async function delResource (params) {
+export async function delResource(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
 
@@ -29,7 +29,7 @@ export async function delResource (params) {
   });
 }
 
-export async function updateResource (params) {
+export async function updateResource(params) {
   return request('/server/aps/resource/materiel/update', {
     method: 'POST',
     body: {
@@ -38,7 +38,7 @@ export async function updateResource (params) {
   });
 }
 
-export async function queryResourceBrief (params) {
+export async function queryResourceBrief(params) {
   return request(`/server/aps/resource/materiel/brief/list?${stringify(params)}`);
 }
 
@@ -48,11 +48,11 @@ export async function queryResourceBrief (params) {
  * @param params
  * @returns {Promise<void>}
  */
-export async function queryPurchase (params) {
+export async function queryPurchase(params) {
   return request(`/server/aps/procurement/list?${stringify(params)}`);
 }
 
-export async function addPurchase (params) {
+export async function addPurchase(params) {
   return request('/server/aps/procurement/save', {
     method: 'POST',
     body: {
@@ -61,7 +61,7 @@ export async function addPurchase (params) {
   });
 }
 
-export async function delPurchase (params) {
+export async function delPurchase(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
   return request('/server/aps/procurement/delete', {
@@ -75,11 +75,15 @@ export async function delPurchase (params) {
  * @param params
  * @returns {Promise<void>}
  */
-export async function queryEquip (params) {
+export async function queryEquip(params) {
   return request(`/server/aps/resource/device/record/list?${stringify(params)}`);
 }
 
-export async function addEquip (params) {
+export async function queryEquipBrief(params) {
+  return request(`/server/aps/resource/device/record/brief/list?${stringify(params)}`);
+}
+
+export async function addEquip(params) {
   return request('/server/aps/resource/device/record/save', {
     method: 'POST',
     body: {
@@ -88,7 +92,7 @@ export async function addEquip (params) {
   });
 }
 
-export async function delEquip (params) {
+export async function delEquip(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
   return request('/server/aps/resource/device/record/delete', {
@@ -97,7 +101,7 @@ export async function delEquip (params) {
   });
 }
 
-export async function updateEquip (params) {
+export async function updateEquip(params) {
   return request('/server/aps/resource/device/record/update', {
     method: 'POST',
     body: {
@@ -109,12 +113,16 @@ export async function updateEquip (params) {
 /**
  *  模具资源
  */
-export async function queryMold (params) {
+export async function queryMold(params) {
   return request(`/server/aps/resource/mold/list?${stringify(params)}`);
 }
 
-export async function addMold (params) {
-  return request('/server/aps/resource/mold/add', {
+export async function queryMoldBrief(params) {
+  return request(`/server/aps/resource/mold/brief/list?${stringify(params)}`);
+}
+
+export async function addMold(params) {
+  return request('/server/aps/resource/mold/save', {
     method: 'POST',
     body: {
       ...params,
@@ -122,7 +130,7 @@ export async function addMold (params) {
   });
 }
 
-export async function delMold (params) {
+export async function delMold(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
   return request('/server/aps/resource/mold/delete', {
@@ -131,7 +139,7 @@ export async function delMold (params) {
   });
 }
 
-export async function updateMold (params) {
+export async function updateMold(params) {
   return request('/server/aps/resource/mold/update', {
     method: 'POST',
     body: {
@@ -143,11 +151,11 @@ export async function updateMold (params) {
 /**
  *  班次模式
  */
-export async function queryShifts (params) {
+export async function queryShifts(params) {
   return request(`/server/aps/shift/list?${stringify(params)}`);
 }
 
-export async function addShifts (params) {
+export async function addShifts(params) {
   return request('/server/aps/shift/save', {
     method: 'POST',
     body: {
@@ -156,7 +164,7 @@ export async function addShifts (params) {
   });
 }
 
-export async function delShifts (params) {
+export async function delShifts(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
   return request('/server/aps/shift/delete', {
@@ -165,7 +173,7 @@ export async function delShifts (params) {
   });
 }
 
-export async function updateShifts (params) {
+export async function updateShifts(params) {
   return request('/server/aps/shift/update', {
     method: 'POST',
     body: {
@@ -177,13 +185,13 @@ export async function updateShifts (params) {
 /**
  * 产品档案
  */
-export async function queryProducts (params) {
+export async function queryProducts(params) {
   return request(`/server/aps/product/products?${stringify(params)}`, {
     method: 'POST',
   });
 }
 
-export async function addProducts (params) {
+export async function addProducts(params) {
   return request('/server/aps/product/save', {
     method: 'POST',
     body: {
@@ -192,7 +200,7 @@ export async function addProducts (params) {
   });
 }
 
-export async function delProducts (params) {
+export async function delProducts(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
   return request('/server/aps/product/delete', {
@@ -201,7 +209,7 @@ export async function delProducts (params) {
   });
 }
 
-export async function updateProducts (params) {
+export async function updateProducts(params) {
   return request('/server/aps/product/update', {
     method: 'POST',
     body: {
@@ -213,13 +221,13 @@ export async function updateProducts (params) {
 /**
  * 产品BOM
  */
-export async function queryBoms (params) {
+export async function queryBoms(params) {
   return request(`/server/aps/bom/boms?${stringify(params)}`, {
     method: 'POST',
   });
 }
 
-export async function addBoms (params) {
+export async function addBoms(params) {
   return request('/server/aps/bom/save', {
     method: 'POST',
     body: {
@@ -228,7 +236,7 @@ export async function addBoms (params) {
   });
 }
 
-export async function delBoms (params) {
+export async function delBoms(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
   return request('/server/aps/bom/delete', {
@@ -237,7 +245,7 @@ export async function delBoms (params) {
   });
 }
 
-export async function updateBoms (params) {
+export async function updateBoms(params) {
   return request('/server/aps/bom/update', {
     method: 'POST',
     body: {
@@ -249,19 +257,19 @@ export async function updateBoms (params) {
 /**
  * 产品工艺
  */
-export async function queryCrafts (params) {
+export async function queryCrafts(params) {
   return request(`/server/aps/crafts/craftsList?${stringify(params)}`, {
     method: 'POST',
   });
 }
 
-export async function queryCraftsById (params) {
+export async function queryCraftsById(params) {
   return request(`/server/aps/crafts/get?${stringify(params)}`, {
     method: 'POST',
   });
 }
 
-export async function addCrafts (params) {
+export async function addCrafts(params) {
   return request('/server/aps/crafts/save', {
     method: 'POST',
     body: {
@@ -270,7 +278,7 @@ export async function addCrafts (params) {
   });
 }
 
-export async function delCrafts (params) {
+export async function delCrafts(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
   return request('/server/aps/crafts/delete', {
@@ -279,7 +287,7 @@ export async function delCrafts (params) {
   });
 }
 
-export async function updateCrafts (params) {
+export async function updateCrafts(params) {
   return request('/server/aps/crafts/update', {
     method: 'POST',
     body: {
@@ -291,19 +299,19 @@ export async function updateCrafts (params) {
 /**
  * 产品工艺线路
  */
-export async function queryProRoutes (params) {
+export async function queryProRoutes(params) {
   return request(`/server/aps/processRoute/processRoutes?${stringify(params)}`, {
     method: 'POST',
   });
 }
 
-export async function queryProRoutesById (params) {
+export async function queryProRoutesById(params) {
   return request(`/server/aps/processRoute/get?${stringify(params)}`, {
     method: 'POST',
   });
 }
 
-export async function addProRoutes (params) {
+export async function addProRoutes(params) {
   return request('/server/aps/processRoute/save', {
     method: 'POST',
     body: {
@@ -312,7 +320,7 @@ export async function addProRoutes (params) {
   });
 }
 
-export async function delProRoutes (params) {
+export async function delProRoutes(params) {
   const formData = new FormData();
   formData.append(`ids`, params.ids.toString());
   return request('/server/aps/processRoute/delete', {
@@ -321,7 +329,7 @@ export async function delProRoutes (params) {
   });
 }
 
-export async function updateProRoutes (params) {
+export async function updateProRoutes(params) {
   return request('/server/aps/processRoute/update', {
     method: 'POST',
     body: {
@@ -331,55 +339,65 @@ export async function updateProRoutes (params) {
 }
 
 /**
+ * 订单排产列表
+ */
+export async function queryOrderList(params) {
+  return request(`/server/aps/order/list?${stringify(params)}`, {
+    method: 'get',
+  });
+}
+
+
+/**
  * 设备负荷图表列表
  */
-export async function queryDeviceL (params) {
+export async function queryDeviceL(params) {
   return request(`/server/aps/statistics/device/load?${stringify(params)}`);
 }
 
-export async function queryDeviceExport (params) {
+export async function queryDeviceExport(params) {
   return request(`/server/aps/statistics/device/load/export?${stringify(params)}`);
 }
 
 /**
  * 模具负荷图表列表
  */
-export async function queryMoldL (params) {
+export async function queryMoldL(params) {
   return request(`/server/aps/statistics/mold/load?${stringify(params)}`);
 }
 
-export async function queryMoldExport (params) {
+export async function queryMoldExport(params) {
   return request(`/server/aps/statistics/mold/load/export?${stringify(params)}`);
 }
 
 /**
  * 投料计划图表列表
  */
-export async function queryMaterials (params) {
-  return request(`/server/aps/statistics/materials/load?${stringify(params)}`);
+export async function queryMaterials(params) {
+  return request(`/server/aps/statistics/materials/plan?${stringify(params)}`);
 }
 
-export async function queryMaterialsExport (params) {
-  return request(`/server/aps/statistics/materials/load/export?${stringify(params)}`);
+export async function queryMaterialsExport(params) {
+  return request(`/server/aps/statistics/materials/plan/export?${stringify(params)}`);
 }
 
 /**
  * DemoApi
  * @returns {Promise<void>}
  */
-export async function queryProjectNotice () {
+export async function queryProjectNotice() {
   return request('/server/api/project/notice');
 }
 
-export async function queryActivities () {
+export async function queryActivities() {
   return request('/server/api/activities');
 }
 
-export async function queryRule (params) {
+export async function queryRule(params) {
   return request(`/server/api/rule?${stringify(params)}`);
 }
 
-export async function removeRule (params) {
+export async function removeRule(params) {
   return request('/server/api/rule', {
     method: 'POST',
     body: {
@@ -389,7 +407,7 @@ export async function removeRule (params) {
   });
 }
 
-export async function addRule (params) {
+export async function addRule(params) {
   return request('/server/api/rule', {
     method: 'POST',
     body: {
@@ -399,7 +417,7 @@ export async function addRule (params) {
   });
 }
 
-export async function updateRule (params = {}) {
+export async function updateRule(params = {}) {
   return request(`/server/api/rule?${stringify(params.query)}`, {
     method: 'POST',
     body: {
@@ -409,34 +427,34 @@ export async function updateRule (params = {}) {
   });
 }
 
-export async function fakeSubmitForm (params) {
+export async function fakeSubmitForm(params) {
   return request('/server/api/forms', {
     method: 'POST',
     body: params,
   });
 }
 
-export async function fakeChartData () {
+export async function fakeChartData() {
   return request('/server/api/fake_chart_data');
 }
 
-export async function queryTags () {
+export async function queryTags() {
   return request('/server/api/tags');
 }
 
-export async function queryBasicProfile (id) {
+export async function queryBasicProfile(id) {
   return request(`/server/api/profile/basic?id=${id}`);
 }
 
-export async function queryAdvancedProfile () {
+export async function queryAdvancedProfile() {
   return request('/server/api/profile/advanced');
 }
 
-export async function queryFakeList (params) {
+export async function queryFakeList(params) {
   return request(`/server/api/fake_list?${stringify(params)}`);
 }
 
-export async function removeFakeList (params) {
+export async function removeFakeList(params) {
   const { count = 5, ...restParams } = params;
   return request(`/server/api/fake_list?count=${count}`, {
     method: 'POST',
@@ -447,7 +465,7 @@ export async function removeFakeList (params) {
   });
 }
 
-export async function addFakeList (params) {
+export async function addFakeList(params) {
   const { count = 5, ...restParams } = params;
   return request(`/server/api/fake_list?count=${count}`, {
     method: 'POST',
@@ -458,7 +476,7 @@ export async function addFakeList (params) {
   });
 }
 
-export async function updateFakeList (params) {
+export async function updateFakeList(params) {
   const { count = 5, ...restParams } = params;
   return request(`/server/api/fake_list?count=${count}`, {
     method: 'POST',
@@ -469,24 +487,24 @@ export async function updateFakeList (params) {
   });
 }
 
-export async function fakeAccountLogin (params) {
+export async function fakeAccountLogin(params) {
   return request('/server/api/login/account', {
     method: 'POST',
     body: params,
   });
 }
 
-export async function fakeRegister (params) {
+export async function fakeRegister(params) {
   return request('/server/api/register', {
     method: 'POST',
     body: params,
   });
 }
 
-export async function queryNotices (params = {}) {
+export async function queryNotices(params = {}) {
   return request(`/server/api/notices?${stringify(params)}`);
 }
 
-export async function getFakeCaptcha (mobile) {
+export async function getFakeCaptcha(mobile) {
   return request(`/server/api/captcha?mobile=${mobile}`);
 }

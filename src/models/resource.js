@@ -1,4 +1,4 @@
-import { queryResource, addResource, delResource, updateResource,queryResourceBrief } from '@/services/api';
+import { queryResource, addResource, delResource, updateResource, queryResourceBrief } from '@/services/api';
 
 export default {
   namespace: 'resource',
@@ -11,7 +11,7 @@ export default {
   },
 
   effects: {
-    * fetch ({ payload }, { call, put }) {
+    * fetch({ payload }, { call, put }) {
       const response = yield call(queryResource, payload);
       const resData = {
         list: response.data.list || [],
@@ -26,7 +26,7 @@ export default {
         payload: resData,
       });
     },
-    * fetchBrief ({ payload }, { call, put }) {
+    * fetchBrief({ payload, callback }, { call, put }) {
       const response = yield call(queryResourceBrief, payload);
       yield put({
         type: 'save',
@@ -34,7 +34,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * add ({ payload, callback }, { call, put }) {
+    * add({ payload, callback }, { call, put }) {
       const response = yield call(addResource, payload);
       yield put({
         type: 'save',
@@ -42,7 +42,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * remove ({ payload, callback }, { call, put }) {
+    * remove({ payload, callback }, { call, put }) {
       const response = yield call(delResource, payload);
       yield put({
         type: 'save',
@@ -50,7 +50,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * update ({ payload, callback }, { call, put }) {
+    * update({ payload, callback }, { call, put }) {
       const response = yield call(updateResource, payload);
       yield put({
         type: 'save',
@@ -61,7 +61,7 @@ export default {
   },
 
   reducers: {
-    save (state, action) {
+    save(state, action) {
       return {
         ...state,
         data: action.payload,

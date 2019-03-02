@@ -25,7 +25,6 @@ class Page extends PureComponent {
     page.on('node:click', ev => {
       const { id } = ev.item.model;
       const { dataList } = this.props;
-      console.log('dataList', dataList, id);
       let data = {};
       for (let i = 0; i < dataList.length; i += 1) {
         if (dataList[i].id === id) {
@@ -96,24 +95,27 @@ class Page extends PureComponent {
     // 获取form表单
     const {
       form: { getFieldDecorator },
+      resourceList,
+      equipList,
     } = this.props;
 
     return (
       // 嵌套类
       <React.Fragment>
-        <div className={styles.page} ref={this.element} />
+        <div className={styles.page} ref={this.element}/>
         <Drawer
           title="路线详情"
           closable={false}
           visible={visible}
           placement="right"
-          width="400"
+          width="800"
           onClose={this.onClose}
           destroyOnClose
         >
           <Form className="ant-advanced-search-form" onSubmit={this.handleSubmit}>
-            <ItemEditor data={data} getFieldDecorator={getFieldDecorator} />
-            <br />
+            <ItemEditor data={data} resourceList={resourceList}
+                        equipList={equipList} getFieldDecorator={getFieldDecorator}/>
+            <br/>
             <Button type="primary" htmlType="submit" block>
               保存
             </Button>

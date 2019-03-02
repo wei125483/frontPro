@@ -11,7 +11,7 @@ export default {
   },
 
   effects: {
-    * fetch ({ payload }, { call, put }) {
+    * fetch({ payload, callback }, { call, put }) {
       const response = yield call(queryCrafts, payload);
       const resData = {
         list: response.data.list || [],
@@ -25,8 +25,9 @@ export default {
         type: 'save',
         payload: resData,
       });
+      if (callback) callback(resData);
     },
-    * add ({ payload, callback }, { call, put }) {
+    * add({ payload, callback }, { call, put }) {
       const response = yield call(addCrafts, payload);
       yield put({
         type: 'save',
@@ -34,7 +35,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * remove ({ payload, callback }, { call, put }) {
+    * remove({ payload, callback }, { call, put }) {
       const response = yield call(delCrafts, payload);
       yield put({
         type: 'save',
@@ -42,7 +43,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * update ({ payload, callback }, { call, put }) {
+    * update({ payload, callback }, { call, put }) {
       const response = yield call(updateCrafts, payload);
       yield put({
         type: 'save',
@@ -53,7 +54,7 @@ export default {
   },
 
   reducers: {
-    save (state, action) {
+    save(state, action) {
       return {
         ...state,
         data: action.payload,

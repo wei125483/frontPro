@@ -1,4 +1,4 @@
-import { queryEquip, addEquip, delEquip, updateEquip } from '@/services/api';
+import { queryEquip,queryEquipBrief, addEquip, delEquip, updateEquip } from '@/services/api';
 
 export default {
   namespace: 'equip',
@@ -11,7 +11,7 @@ export default {
   },
 
   effects: {
-    * fetch ({ payload }, { call, put }) {
+    * fetch({ payload }, { call, put }) {
       const response = yield call(queryEquip, payload);
       const resData = {
         list: response.data.list || [],
@@ -26,7 +26,15 @@ export default {
         payload: resData,
       });
     },
-    * add ({ payload, callback }, { call, put }) {
+    * fetchBrief({ payload, callback }, { call, put }) {
+      const response = yield call(queryEquipBrief, payload);
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+      if (callback) callback(response);
+    },
+    * add({ payload, callback }, { call, put }) {
       const response = yield call(addEquip, payload);
       yield put({
         type: 'save',
@@ -34,7 +42,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * remove ({ payload, callback }, { call, put }) {
+    * remove({ payload, callback }, { call, put }) {
       const response = yield call(delEquip, payload);
       yield put({
         type: 'save',
@@ -42,7 +50,7 @@ export default {
       });
       if (callback) callback(response);
     },
-    * update ({ payload, callback }, { call, put }) {
+    * update({ payload, callback }, { call, put }) {
       const response = yield call(updateEquip, payload);
       yield put({
         type: 'save',
@@ -53,7 +61,7 @@ export default {
   },
 
   reducers: {
-    save (state, action) {
+    save(state, action) {
       return {
         ...state,
         data: action.payload,
