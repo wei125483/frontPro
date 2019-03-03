@@ -44,7 +44,7 @@ $ npm start         # 访问 http://localhost:8000
 ## 接口
 ``
 地址：http://113.106.60.50:18088
-文档地址：http://113.106.60.50:18111
+文档地址：http://113.106.60.50:18111/api
 账户：wei.chuanbo@frontsurf.com
 ``
 

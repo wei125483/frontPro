@@ -137,7 +137,7 @@ class OrderList extends PureComponent {
     },
     {
       title: '交货日期',
-      dataIndex: 'callNo1',
+      dataIndex: 'deliveryDate',
     },
     {
       title: '现有库存',
@@ -153,16 +153,20 @@ class OrderList extends PureComponent {
     },
     {
       title: '优先级',
-      dataIndex: 'updatedAt',
+      dataIndex: 'priority',
     },
     {
       title: '状态',
-      dataIndex: 'desc2',
+      dataIndex: 'status',
+      render (t = 2) {
+        return ['未排程', '已排程', ''][t];
+      },
     },
   ];
 
-  componentDidMount() {
+  componentDidMount () {
     const { dispatch } = this.props;
+    console.log(123123123);
     dispatch({
       type: 'order/fetch',
     });
@@ -254,11 +258,8 @@ class OrderList extends PureComponent {
     this.handleModalVisible();
   };
 
-  render() {
-    const {
-      order: { data },
-      loading,
-    } = this.props;
+  render () {
+    const { order: { data }, loading } = this.props;
     const { selectedRows, modalLenght, modalVisible } = this.state;
     const parentMethods = {
       modalLenght,
@@ -274,13 +275,13 @@ class OrderList extends PureComponent {
               {/* <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}> */}
               {/* 新增 */}
               {/* </Button> */}
-              <Button icon="cluster" type="primary" onClick={() => this.handleModalVisible(true)}>
-                排产
+              <Button type="primary" onClick={() => this.handleModalVisible(true)}>
+                新增
               </Button>
               {selectedRows.length > 0 && (
                 <span>
                   <Button onClick={this.handleMenuClick} key="remove">
-                    批量删除
+                    排产
                   </Button>
                 </span>
               )}

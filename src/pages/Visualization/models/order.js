@@ -1,7 +1,7 @@
 import { queryOrderList } from '@/services/api';
 
 export default {
-  namespace: 'moldl',
+  namespace: 'order',
 
   state: {
     data: {

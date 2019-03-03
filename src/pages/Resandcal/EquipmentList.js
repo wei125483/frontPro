@@ -32,7 +32,8 @@ const CreateForm = Form.create()(props => {
   }
 
   return (
-    <Modal destroyOnClose title={itemData.moldIds?'修改设备信息':'新增信息'} width={720} visible={modalVisible} onOk={okHandle}
+    <Modal destroyOnClose title={itemData.moldIds ? '修改设备信息' : '新增信息'} width={720} visible={modalVisible}
+           onOk={okHandle}
            onCancel={() => handleModalVisible()}>
       <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
         <Col span={12}>
@@ -227,7 +228,7 @@ class EquipmentList extends PureComponent {
     },
   ];
 
-  componentDidMount() {
+  componentDidMount () {
     const { dispatch } = this.props;
     const { pagination } = this.state;
     dispatch({
@@ -243,7 +244,7 @@ class EquipmentList extends PureComponent {
     dispatch({
       type: 'mold/fetchBrief',
       payload: {},
-      callback(response) {
+      callback (response) {
         const { data, code } = response;
         if (code == '200') {
           that.setState({
@@ -315,6 +316,7 @@ class EquipmentList extends PureComponent {
 
   handleModalVisible = flag => {
     this.setState({
+      itemData: {},
       modalVisible: !!flag,
     });
   };
@@ -355,7 +357,7 @@ class EquipmentList extends PureComponent {
     });
   };
 
-  render() {
+  render () {
     const {
       equip: { data },
       loading,

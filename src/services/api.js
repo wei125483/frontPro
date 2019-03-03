@@ -166,7 +166,7 @@ export async function addShifts(params) {
 
 export async function delShifts(params) {
   const formData = new FormData();
-  formData.append(`ids`, params.ids.toString());
+  formData.append(`id`, params.id);
   return request('/server/aps/shift/delete', {
     method: 'POST',
     body: formData,

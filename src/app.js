@@ -30,15 +30,16 @@ export function patchRoutes(routes) {
 }
 
 export function render(oldRender) {
-  fetch('/server/api/auth_routes')
-    .then(res => res.json())
-    .then(
-      ret => {
-        authRoutes = ret;
-        oldRender();
-      },
-      () => {
-        oldRender();
-      }
-    );
+  oldRender();
+  // fetch('/server/api/auth_routes')
+  //   .then(res => res.json())
+  //   .then(
+  //     ret => {
+  //       authRoutes = ret;
+  //       oldRender();
+  //     },
+  //     () => {
+  //       oldRender();
+  //     }
+  //   );
 }
