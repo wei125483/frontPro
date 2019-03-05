@@ -10,7 +10,9 @@ class OrderProduction extends PureComponent {
   }
 
   render () {
-    return (<div><Card bordered={false}></Card></div>);
+    return (<div><Card bordered={false}>
+
+    </Card></div>);
   };
 }
 

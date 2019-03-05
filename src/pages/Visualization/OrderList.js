@@ -14,6 +14,7 @@ import {
   Select,
   Modal,
   Drawer,
+  Radio,
   message,
 } from 'antd';
 import StandardTable from '@/components/StandardTable';
@@ -22,6 +23,7 @@ import OrderProduction from './OrderProduction.js';
 import styles from './index.less';
 
 const FormItem = Form.Item;
+const RadioGroup = Radio.Group;
 const { Option } = Select;
 const getValue = obj =>
   Object.keys(obj)
@@ -175,11 +177,12 @@ const CreateForm = Form.create()(props => {
 class OrderList extends PureComponent {
   state = {
     modalVisible: false,
-    DraVisible: false,
+    draVisible: false,
     selectedRows: [],
     proList: [{ productId: '', amount: '', craftRouteId: '' }],
     resourceList: [],
     craftRouteList: [],//产品下的工艺线路
+    scheduleType: 1,
     pagination: {
       current: 1,
       pageSize: 10,
@@ -320,24 +323,25 @@ class OrderList extends PureComponent {
   // 排产
   handleMenuClick = e => {
     const { dispatch } = this.props;
-    const { selectedRows } = this.state;
+    const { selectedRows, draVisible } = this.state;
     const ids = [];
     selectedRows.map(item => {
       ids.push(`${item.id}`);
       return '';
     });
     if (selectedRows.length === 0) return;
-    dispatch({
-      type: 'order/remove',
-      payload: {
-        key: selectedRows.map(row => row.key),
-      },
-      callback: () => {
-        this.setState({
-          selectedRows: [],
-        });
-      },
-    });
+    this.handleDrawerVisible(true);
+    // dispatch({
+    //   type: 'order/remove',
+    //   payload: {
+    //     key: selectedRows.map(row => row.key),
+    //   },
+    //   callback: () => {
+    //     this.setState({
+    //       selectedRows: [],
+    //     });
+    //   },
+    // });
   };
 
   // 勾选选择
@@ -387,8 +391,16 @@ class OrderList extends PureComponent {
 
   handleDrawerVisible = flag => {
     this.setState({
-      DraVisible: !!flag,
+      draVisible: !!flag,
     });
+  };
+  onClose = () => {
+    this.setState({
+      draVisible: false,
+    });
+  };
+  scheduleTypeChange = (v) => {
+
   };
 
   queryAllProduct = (record, index) => {
@@ -418,7 +430,7 @@ class OrderList extends PureComponent {
 
   render () {
     const { order: { data }, loading, dispatch } = this.props;
-    const { selectedRows, proList, modalVisible, DraVisible, resourceList, craftRouteList } = this.state;
+    const { selectedRows, proList, modalVisible, draVisible, resourceList, craftRouteList } = this.state;
     const parentMethods = {
       proList,
       resourceList,
@@ -427,6 +439,10 @@ class OrderList extends PureComponent {
       handleAddProList: this.handleAddProList,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
+    };
+    const titleStyle = {
+      display: 'flex',
+      justifyContent:'space-between'
     };
     return (
       <div>
@@ -458,11 +474,23 @@ class OrderList extends PureComponent {
         <Drawer
           placement="bottom"
           height="80%"
-          visible={DraVisible}
+          title={<div style={titleStyle}>
+            <div>
+              <span style={{ 'font-weight': 600, 'padding': '0 50px 0 20px' }}>订单策略</span>
+              制令单的生成方式：
+              <RadioGroup onChange={this.scheduleTypeChange} value={this.state.scheduleType}>
+                <Radio value={1}>按天生成</Radio>
+                <Radio value={2}>按班次生成</Radio>
+              </RadioGroup>
+            </div>
+            <div>
+              <Button type={'primary'}>排程</Button>
+            </div>
+          </div>}
+          visible={draVisible}
           closable={false}
           destroyOnClose
-          onClose={this.handleDrawerVisible(false)}
-          // bodyStyle={{ height: '100%', overflowX: 'hidden', padding: 0 }}
+          onClose={this.onClose}
         >
           <OrderProduction/>
         </Drawer>
