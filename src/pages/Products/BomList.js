@@ -30,13 +30,22 @@ const CreateForm = Form.create()(props => {
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
-      form.resetFields();
-      handleAdd(fieldsValue);
+      const params = {
+        id: fieldsValue.id,
+        apsInventories: [...modalLenght],
+      };
+      handleAdd(params, form);
     });
   };
   const inputChange = (index, key, value) => {
     const newList = [...modalLenght];
-    newList[index][key] = value;
+    if (key === 'id') {
+      const values = value.split('_');
+      newList[index][key] = values[0];
+      newList[index].unit = values[1];
+    } else {
+      newList[index][key] = value;
+    }
     handleAddModalLenght(newList);
   };
   const vFormTest = (index) => {
@@ -62,26 +71,14 @@ const CreateForm = Form.create()(props => {
         </Col>
         <Col span={12}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品名称">
-            {form.getFieldDecorator('prodId', {
+            {form.getFieldDecorator('id', {
               rules: [{ required: true, message: '请选择产品名称！' }],
             })(<Select style={{ width: '100%' }} showSearch>
               {
-                productList.map((item, index) => {
-                  return (<Option key={item.serial_num} value={index}>{item.materialName}</Option>);
+                productList.map((item) => {
+                  return (<Option key={item.serial_num} value={item.materialId}>{item.materialName}</Option>);
                 })
               }
-            </Select>)}
-          </FormItem>
-        </Col>
-        <Col span={12}>
-          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品类型">
-            {form.getFieldDecorator('productType', {
-              initialValue: 1,
-              rules: [{ required: true, message: '请选择产品类型' }],
-            })(<Select placeholder="请选择产品类型" style={{ width: '100%' }}>
-              <Option value={1}>原料</Option>
-              <Option value={2}>半成品</Option>
-              <Option value={3}>成品</Option>
             </Select>)}
           </FormItem>
         </Col>
@@ -97,11 +94,12 @@ const CreateForm = Form.create()(props => {
                     rules: [{ required: true, message: '请选择料品编码' }],
                     ...vFormTest(index),
                   })(
-                    <Select style={{ width: '100%' }} onChange={(e) => inputChange(index, 'proId', e)}
+                    <Select style={{ width: '100%' }} onChange={(e) => inputChange(index, 'id', e)}
                             showSearch>
                       {
                         resourceList.map(item => {
-                          return (<Option key={item.serial_num} value={item.materialId}>{item.materialName}</Option>);
+                          return (<Option key={item.serial_num}
+                                          value={`${item.materialId}_${item.unit}`}>{item.materialName}</Option>);
                         })
                       }
                     </Select>,
@@ -113,7 +111,7 @@ const CreateForm = Form.create()(props => {
                   {form.getFieldDecorator(`num${index}`, {
                     rules: [{ required: true, message: '请输入数量' }],
                     initialValue: item.proNum || '',
-                  })(<Input maxLength={7} type='number' onChange={(e) => inputChange(index, 'proNum', e.target.value)}
+                  })(<Input maxLength={7} type='number' onChange={(e) => inputChange(index, 'num', e.target.value)}
                             addonAfter={item.unit} placeholder="请输入数量"/>)}
                   {
                     index !== 0 &&
@@ -143,11 +141,12 @@ const CreateForm = Form.create()(props => {
 @Form.create()
 class BomList extends PureComponent {
   state = {
-    modalVisible: true,
+    modalVisible: false,
     selectedRows: [],
     modalLenght: [{ id: '', num: '', unit: '' }],
     productList: [],
     resourceList: [],
+    itemData: {},
     pagination: {
       current: 1,
       pageSize: 10,
@@ -300,7 +299,7 @@ class BomList extends PureComponent {
   // 显示隐藏弹框
   handleModalVisible = flag => {
     this.setState({
-      modalLenght: [],
+      modalLenght: [{ id: '', num: '', unit: '' }],
       modalVisible: !!flag,
     });
   };
@@ -313,6 +312,26 @@ class BomList extends PureComponent {
   };
 
   handleAdd = (fields, form) => {
+
+    const { dispatch } = this.props;
+    const { itemData = {}, pagination } = this.state;
+    const isAdd = !itemData.id;
+    dispatch({
+      type: isAdd ? 'boms/add' : 'boms/update',
+      payload: isAdd
+        ? Object.assign(fields, { availableNum: fields.num })
+        : Object.assign(itemData, fields),
+      callback: response => {
+        if (response.code === 200) {
+          message.success(isAdd ? '添加成功' : '更新成功');
+          this.handleModalVisible();
+          this.handleStandardTableChange(pagination);
+        } else {
+          message.warning(response.message);
+        }
+      },
+    });
+
     console.log(fields);
     // const { dispatch } = this.props;
     // dispatch({

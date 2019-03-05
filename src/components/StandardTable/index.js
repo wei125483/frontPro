@@ -61,7 +61,9 @@ class StandardTable extends PureComponent {
     const { selectedRowKeys } = this.state;
     const { data = {}, rowKey, ...rest } = this.props;
     const { list = [], pagination } = data;
-
+    list.map((item, index) => {
+      Object.assign(item, { key: index });
+    });
     const paginationProps = {
       showSizeChanger: true,
       showQuickJumper: true,
@@ -79,7 +81,6 @@ class StandardTable extends PureComponent {
     return (
       <div className={styles.standardTable}>
         <Table
-          rowKey={rowKey || 'key'}
           rowSelection={rowSelection}
           dataSource={list}
           bordered

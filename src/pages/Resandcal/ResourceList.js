@@ -32,7 +32,7 @@ const CreateForm = Form.create()(props => {
             {form.getFieldDecorator('name', {
               initialValue: itemData.name || '',
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
@@ -40,7 +40,7 @@ const CreateForm = Form.create()(props => {
             {form.getFieldDecorator('serialNum', {
               initialValue: itemData.serialNum || '',
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
@@ -53,7 +53,7 @@ const CreateForm = Form.create()(props => {
                 <Option value={1}>原料</Option>
                 <Option value={2}>半成品</Option>
                 <Option value={3}>成品</Option>
-              </Select>
+              </Select>,
             )}
           </FormItem>
         </Col>
@@ -66,7 +66,7 @@ const CreateForm = Form.create()(props => {
               <Select style={{ width: '100%' }} placeholder="请选择">
                 <Option value={1}>采购</Option>
                 <Option value={2}>自产</Option>
-              </Select>
+              </Select>,
             )}
           </FormItem>
         </Col>
@@ -75,7 +75,7 @@ const CreateForm = Form.create()(props => {
             {form.getFieldDecorator('unit', {
               initialValue: itemData.unit || '',
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
@@ -83,7 +83,7 @@ const CreateForm = Form.create()(props => {
             {form.getFieldDecorator('num', {
               initialValue: itemData.num || '',
               rules: [{ required: true }],
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
       </Row>
@@ -156,7 +156,7 @@ class ResourceList extends PureComponent {
     },
   ];
 
-  componentDidMount() {
+  componentDidMount () {
     const { dispatch } = this.props;
     const { productType, pagination } = this.state;
     dispatch({
@@ -271,7 +271,7 @@ class ResourceList extends PureComponent {
     });
   };
 
-  render() {
+  render () {
     const {
       resource: { data },
       loading,
@@ -320,7 +320,7 @@ class ResourceList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
+        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>
     );
   }

@@ -11,7 +11,7 @@ export default {
   },
 
   effects: {
-    * fetch({ payload }, { call, put }) {
+    * fetch ({ payload }, { call, put }) {
       const response = yield call(queryOrderList, payload);
       const resData = {
         list: response.data.list || [],
@@ -21,6 +21,11 @@ export default {
           total: response.data.total || 0,
         },
       };
+      resData.list.map(item => {
+        if (item.status != 0 && item.status != 1) {
+          Object.assign(item, { disabled: true });
+        }
+      });
       yield put({
         type: 'save',
         payload: resData,
@@ -30,7 +35,7 @@ export default {
   },
 
   reducers: {
-    save(state, action) {
+    save (state, action) {
       return {
         ...state,
         data: action.payload,

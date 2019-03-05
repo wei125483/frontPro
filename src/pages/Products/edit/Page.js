@@ -5,16 +5,16 @@ import ItemEditor from './ItemEditor';
 import styles from './style.less';
 
 class Page extends PureComponent {
-  constructor(props) {
+  constructor (props) {
     super(props);
     this.element = React.createRef();
     this.state = {
-      data: [],
+      data: {},
       visible: false,
     };
   }
 
-  componentDidMount() {
+  componentDidMount () {
     const { editor } = this.props;
 
     const page = new G6Editor.Flow({
@@ -23,23 +23,17 @@ class Page extends PureComponent {
       },
     });
     page.on('node:click', ev => {
-      const { id } = ev.item.model;
+      const { shape, id } = ev.item.model;
       const { dataList } = this.props;
-      let data = {};
-      for (let i = 0; i < dataList.length; i += 1) {
-        if (dataList[i].id === id) {
-          data = dataList[i];
-          break;
+      let obj = { craftsId: shape };
+      dataList.map((item) => {
+        if (item.id === id) {
+          Object.assign(obj, item);
         }
-      }
+      });
       this.setState({
         visible: true,
-        data: Object.keys(data).map(key => {
-          return {
-            name: key,
-            value: data[key],
-          };
-        }),
+        data: { ...obj },
       });
     });
     editor.add(page);
@@ -52,44 +46,24 @@ class Page extends PureComponent {
   };
 
   // 保存数据
-  handleSubmit = e => {
-    e.preventDefault();
+  handleSubmit = (fieldsValue) => {
     const { form, callBack } = this.props;
+    const { data } = this.state;
     form.validateFields((err, values) => {
-      const data = [];
-      let i = 0;
-      while (values[`name-${i}`] !== undefined) {
-        if (values[`name-${i}`] !== '') {
-          data[values[`name-${i}`]] = values[`value-${i}`];
-        }
-        i += 1;
-      }
-      // 将表单传回Index页面
-      callBack(values);
+      if (err) return;
+      const nowData = {};
+      nowData.devices = [...fieldsValue];
+      nowData.id = data.id;
+      nowData.craftsId = data.craftsId;
+      nowData.minLimitNum = values.minLimitNum;
+      nowData.produceId = values.produceId;
+      // // 将表单传回Index页面
+      callBack(nowData);
       this.onClose();
     });
   };
 
-  // 添加属性
-  add = () => {
-    this.setState(preState => {
-      preState.data.push({
-        name: '',
-        value: '',
-      });
-      return preState;
-    });
-  };
-
-  // 删除属性
-  delete = i => {
-    this.setState(preState => {
-      preState.data.splice(i, 1);
-      return preState;
-    });
-  };
-
-  render() {
+  render () {
     // 获取节点出事数据
     const { data, visible } = this.state;
     // 获取form表单
@@ -108,17 +82,13 @@ class Page extends PureComponent {
           closable={false}
           visible={visible}
           placement="right"
-          width="800"
+          width="680"
           onClose={this.onClose}
           destroyOnClose
         >
-          <Form className="ant-advanced-search-form" onSubmit={this.handleSubmit}>
-            <ItemEditor data={data} resourceList={resourceList}
+          <Form className="ant-advanced-search-form">
+            <ItemEditor itemData={data} resourceList={resourceList} handleSubmit={this.handleSubmit}
                         equipList={equipList} getFieldDecorator={getFieldDecorator}/>
-            <br/>
-            <Button type="primary" htmlType="submit" block>
-              保存
-            </Button>
           </Form>
         </Drawer>
       </React.Fragment>

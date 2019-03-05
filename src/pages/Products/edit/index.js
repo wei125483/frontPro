@@ -5,10 +5,14 @@ import styles from './style.less';
 import Page from './Page';
 import ItemPannel from './ItemPannel';
 import mark2 from './mark2.svg';
+import { Form, Input, Select, Button, message } from 'antd';
+
+const FormItem = Form.Item;
+const { Option } = Select;
 
 // 注册模型卡片基类
 Flow.registerNode('model-card', {
-  draw(item) {
+  draw (item) {
     const group = item.getGraphicGroup();
     const model = item.getModel();
     const width = 184;
@@ -67,62 +71,34 @@ Flow.registerNode('model-card', {
   anchor: [[0.5, 0, { type: 'input' }], [0.5, 1, { type: 'output' }]],
 });
 
+@Form.create()
 class Editor extends Component {
-  constructor(props) {
+  constructor (props) {
     super(props);
     this.editor = new G6Editor();
     this.state = {
       dataList: [], // 存储内容
-      relation: {},
+      relation: {}, // 线路图位置信息
       processList: [],
-      resourceList: [], // 产品下拉列表
       equipList: [],// 设备下拉列表
-      data: [
-        {
-          id: '1',
-          name: 'source_kafka',
-          topic: 'test1',
-          group: 'test_yrw',
-          partition: '60',
-          replicas: '2',
-          split: ',',
-          fields:
-            'host:string,https:string,method:string,request_body:string,uri:string,response_body:string',
-        },
-        {
-          id: '2',
-          name: 'filter_1',
-          rule: 'host,uri,request_body,response_body',
-          numPartition: 60,
-        },
-        {
-          id: '3',
-          name: 'filter_2',
-          rule: 'host,uri,request_body,response_body',
-          type: 'transform',
-          numPartition: 60,
-        },
-        {
-          id: '4',
-          name: 'elasticSearch_1',
-          port: '9200',
-          index: 'test_2018XX',
-          numShards: '3',
-          numReplicas: '1',
-        },
-        {
-          id: '5',
-          name: 'elasticSearch_2',
-          port: '9200',
-          index: 'test2_2018XX',
-          numShards: '3',
-          numReplicas: '1',
-        },
-      ],
+      parentData: {}, // 添加时 传参
+      isAdd: true,
+      data: [],
     };
   }
 
-  componentDidMount() {
+  componentDidMount () {
+
+    const { itemData = {} } = this.props;
+    if (itemData.id) {
+      // 如果是修改数据
+      this.setState({
+        isAdd: false,
+        dataList: itemData.itemList || [],
+        relation: JSON.parse(itemData.position),
+      });
+    }
+
     const page = this.editor.getCurrentPage();
     // 显示网格线
     page.showGrid();
@@ -157,13 +133,15 @@ class Editor extends Component {
     page.on('afterchange', ev => {
       const relation = page.save();
       const { dataList, data } = this.state;
+
       this.setState({ relation });
       const getItem = item => {
-        let Obj = null;
+        const Obj = {};
         for (let i = 0; i < data.length; i++) {
           if (data[i].id == item.shape) {
-            Obj = JSON.parse(JSON.stringify(data[i]));
+            // Obj = JSON.parse(JSON.stringify(data[i]));
             Obj.id = item.id;
+            Obj.craftsId = item.shape;
             break;
           }
         }
@@ -193,6 +171,7 @@ class Editor extends Component {
         }
         this.ergodicComput();
       }
+
     });
 
     const that = this;
@@ -203,7 +182,7 @@ class Editor extends Component {
         pageNum: 1,
         pageSize: 1000,
       },
-      callback(resp) {
+      callback (resp) {
         const { list } = resp;
         that.setState({ data: list });
 
@@ -230,20 +209,10 @@ class Editor extends Component {
       },
     });
 
-    // 查询所有产品信息
-    dispatch({
-      type: 'resource/fetchBrief',
-      payload: { type: 2 },
-      callback(response) {
-        const { data, code } = response;
-        code == '200' && that.setState({ resourceList: data });
-      },
-    });
-
     // 查询所有设备信息
     dispatch({
       type: 'equip/fetchBrief',
-      callback(response) {
+      callback (response) {
         const { data, code } = response;
         code == '200' && that.setState({ equipList: data });
       },
@@ -264,11 +233,14 @@ class Editor extends Component {
   callBack = e => {
     // 重新赋值
     const { dataList } = this.state;
+    const list = [...dataList];
     for (let i = 0; i < dataList.length; i++) {
       if (dataList[i].id === e.id) {
-        dataList[i] = e;
+        Object.assign(list[i], e);
+        break;
       }
     }
+    this.setState({ dataList: list });
     this.ergodicComput();
   };
 
@@ -282,40 +254,94 @@ class Editor extends Component {
     const sourceIds = [];
     let parentData = {};
     const newData = JSON.parse(JSON.stringify(dataList)).map(item => {
-      return Object.assign(item, { childens: [] });
+      return Object.assign(item, { children: [] });
     });
     edges.map(item => {
       sourceIds.push(item.source); // 保存所有子类ID
       const source = newData[ids.indexOf(item.source)] || {}; // 从何处
       const target = newData[ids.indexOf(item.target)] || {}; // 到何处
       if (source && source.id && target && target.id) {
-        target.childens.push({ ...source });
+        const sources = { ...source };
+        sources.grid = sources.id;
+        delete sources.id;
+        target.children.push({ ...sources });
       }
       return '';
     });
     ids.map((id, index) => {
-      if (sourceIds.indexOf(id) === -1) {
-        parentData = newData[index];
+      // 判断是否存在，不存在就插入新数据
+      if (id && sourceIds.indexOf(id) === -1) {
+        parentData = { ...newData[index] };
+        parentData.grid = parentData.id;
+        delete parentData.id;
       }
       return '';
     });
-    // console.log('父类ID为：', parentData);
+    this.setState({ parentData: parentData });
   };
 
-  render() {
-    const { relation, dataList, data, resourceList, equipList } = this.state;
+  render () {
+    const { relation, dataList, data, isAdd, equipList, parentData } = this.state;
+    const { resourceList, form, handleSubmit, onClose, itemData = {} } = this.props;
+
+    const submitBefore = () => {
+      form.validateFields((err, fieldsValue) => {
+        if (err) return;
+        // message.warning('请新增线路图');
+        const params = Object.assign({}, {
+          ...fieldsValue,
+          position: JSON.stringify(relation),
+          craftsProcess: parentData,
+        });
+        handleSubmit(params, form);
+        // JSON.stringify(relation); // 存放线路位置信息
+      });
+    };
     return (
-      <div className={styles.editor}>
-        <ItemPannel editor={this.editor} data={data}/>
-        <Page
-          resourceList={resourceList}
-          equipList={equipList}
-          relation={relation}
-          callBack={this.callBack}
-          editor={this.editor}
-          dataList={dataList}
-        />
-      </div>
+      <React.Fragment>
+        <div className={styles.formBox}>
+          <Form layout="inline">
+            <FormItem key="title">
+              <span className={styles.titleSpan}>{isAdd ? '新增工艺路线' : '修改工艺线路'}</span>
+            </FormItem>
+            <FormItem key="name" label="工艺线路名称">
+              {form.getFieldDecorator('name', {
+                initialValue: itemData.name || '',
+                rules: [{ required: true, message: '请输入工艺线路名称！' }, { max: 20, message: '工艺线路名称长度不能超过20字符' }],
+              })(<Input placeholder="请输入" maxLength={20}/>)}
+            </FormItem>
+            <FormItem key="type" label="产品名称">
+              {form.getFieldDecorator('productId', {
+                initialValue: itemData.productId || '',
+                rules: [{ required: true, message: '请选择产品名称！' }],
+              })(
+                <Select style={{ width: '160px' }} placeholder="请选择">
+                  {
+                    resourceList.map(item => {
+                      return (<Option key={item.serial_num} value={item.materialId}>{item.materialName}</Option>);
+                    })
+                  }
+                </Select>,
+              )}
+            </FormItem>
+            <Button style={{ float: 'right', margin: '10px 50px 0 0' }} type="default" size="small"
+                    onClick={onClose} icon="close-circle">取消</Button>
+            <Button className={styles.DrawerSaveBtn} type="primary" onClick={submitBefore} size="small"
+                    icon="file-done">保存</Button>
+          </Form>
+        </div>
+        <div className={styles.editor}>
+          <ItemPannel editor={this.editor} data={data}/>
+          <Page
+            resourceList={resourceList}
+            equipList={equipList}
+            relation={relation}
+            callBack={this.callBack}
+            editor={this.editor}
+            dataList={dataList}
+          />
+        </div>
+      </React.Fragment>
     );
   }
 }

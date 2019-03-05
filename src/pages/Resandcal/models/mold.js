@@ -28,34 +28,18 @@ export default {
     },
     * fetchBrief({ payload, callback }, { call, put }) {
       const response = yield call(queryMoldBrief, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
       if (callback) callback(response);
     },
     * add({ payload, callback }, { call, put }) {
       const response = yield call(addMold, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
       if (callback) callback(response);
     },
     * remove({ payload, callback }, { call, put }) {
       const response = yield call(delMold, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
       if (callback) callback(response);
     },
     * update({ payload, callback }, { call, put }) {
       const response = yield call(updateMold, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
       if (callback) callback(response);
     },
   },

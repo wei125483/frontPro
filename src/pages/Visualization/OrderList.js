@@ -1,95 +1,99 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Input, Button, Col, Row, Icon, Modal, message } from 'antd';
+import {
+  Card,
+  Form,
+  Input,
+  DatePicker,
+  Button,
+  InputNumber,
+  Col,
+  Row,
+  Table,
+  Icon,
+  Select,
+  Modal,
+  Drawer,
+  message,
+} from 'antd';
 import StandardTable from '@/components/StandardTable';
-
+import moment from 'moment';
+import OrderProduction from './OrderProduction.js';
 import styles from './index.less';
 
 const FormItem = Form.Item;
+const { Option } = Select;
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
 
 const CreateForm = Form.create()(props => {
-  const {
-    modalVisible,
-    form,
-    handleAdd,
-    handleModalVisible,
-    modalLenght,
-    handleAddModalLenght,
-  } = props;
+  const { modalVisible, form, resourceList, handleAdd, handleModalVisible, proList, handleAddProList } = props;
   const onAddMould = () => {
-    const obj = modalLenght;
-    obj.push({ id: new Date().getTime(), proId: '', proNum: '' });
-    handleAddModalLenght(obj);
+    const obj = proList;
+    obj.push({ productId: '', amount: '', craftRouteId: '' });
+    handleAddProList(obj);
   };
   const onDelMould = index => {
-    const obj = modalLenght;
+    const obj = proList;
     obj.splice(index, 1);
-    handleAddModalLenght(obj);
+    handleAddProList(obj);
+  };
+  const onChangeMould = (index, key, value) => {
+    const obj = [...proList];
+    obj[index][key] = value;
+    handleAddProList(obj);
   };
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
-      form.resetFields();
-      handleAdd(fieldsValue);
+      console.log(fieldsValue, proList);
+      const params = {};
+      params.orderTime = moment(fieldsValue.orderTime).format('YYYY-MM-DD');
+      params.deliveryDate = moment(fieldsValue.deliveryDate).format('YYYY-MM-DD');
+      params.priority = fieldsValue.priority;
+      params.productList = [...proList];
+      // form.resetFields();
+      // handleAdd(fieldsValue);
     });
   };
   return (
     <Modal
       destroyOnClose
       width={960}
-      title="新增产品BOM"
+      title="新增订单信息"
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
     >
       <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-        <Col span={24}>
-          <h3>产品</h3>
-        </Col>
-        <Col span={8}>
+        <Col span={12}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="订单号">
-            {form.getFieldDecorator('desc', {
+            {form.getFieldDecorator('orderId', {
               rules: [{ required: true, message: '请输入订单号' }],
             })(<Input placeholder="请输入订单号" maxLength={20}/>)}
           </FormItem>
         </Col>
-        <Col span={8}>
+        <Col span={12}>
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="客户名称">
-            {form.getFieldDecorator('desc', {
+            {form.getFieldDecorator('userName', {
               rules: [{ required: true, message: '客户名称' }],
             })(<Input placeholder="请输入客户名称"/>)}
           </FormItem>
         </Col>
-        <Col span={8}>
-          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品名称">
-            {form.getFieldDecorator('productId', {
-              rules: [{ required: true, message: '请选择产品名称' }],
-            })(<Input placeholder="请输入产品名称"/>)}
-          </FormItem>
-        </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="下单日期">
-            {form.getFieldDecorator('desc', {
+            {form.getFieldDecorator('orderTime', {
               rules: [{ required: true, message: '请选择下单日期' }],
-            })(<Input placeholder="请选择下单日期"/>)}
+            })(<DatePicker placeholder="请选择下单日期" style={{ width: '100%' }}/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="交货日期">
             {form.getFieldDecorator('deliveryDate', {
               rules: [{ required: true, message: '请选择交货日期' }],
-            })(<Input placeholder="请选择交货日期"/>)}
-          </FormItem>
-        </Col>
-        <Col span={12}>
-          <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
-            {form.getFieldDecorator('amount', {
-              rules: [{ required: true, message: '请输入数量' }],
-            })(<Input placeholder="请输入数量"/>)}
+            })(<DatePicker placeholder="请选择交货日期" style={{ width: '100%' }}/>)}
           </FormItem>
         </Col>
         <Col span={12}>
@@ -98,6 +102,61 @@ const CreateForm = Form.create()(props => {
               rules: [{ required: true, message: '请输入优先级' }],
             })(<Input placeholder="请输入优先级"/>)}
           </FormItem>
+        </Col>
+        <Col span={12} className={styles.noDataFill}/>
+        {proList.map((item, index) => {
+          return (
+            <div key={index}>
+              <Col span={8}>
+                <FormItem key="type" labelCol={{ span: 7 }} wrapperCol={{ span: 16 }} label="产品名称">
+                  {form.getFieldDecorator(`pro${index}`, {
+                    rules: [{ required: true, message: '请选择产品名称' }],
+                  })(
+                    <Select style={{ width: '100%' }} onChange={(v) => onChangeMould(index, 'productId', v)}>
+                      {
+                        resourceList.map(item => {
+                          return (<Option key={item.serial_num} value={item.materialId}>{item.materialName}</Option>);
+                        })
+                      }
+                    </Select>,
+                  )}
+                </FormItem>
+              </Col>
+              <Col span={8}>
+                <FormItem key="type" labelCol={{ span: 7 }} wrapperCol={{ span: 16 }} label="工艺线路">
+                  {form.getFieldDecorator(`craft${index}`, {
+                    rules: [{ required: true }],
+                  })(
+                    <Select style={{ width: '100%' }} onChange={(v) => onChangeMould(index, 'craftRouteId', v)}>
+                      {
+                        resourceList.map(item => {
+                          return (<Option key={item.serial_num} value={item.materialId}>{item.materialName}</Option>);
+                        })
+                      }
+                    </Select>,
+                  )}
+                </FormItem>
+              </Col>
+              <Col span={8}>
+                <FormItem key="type" labelCol={{ span: 7 }} wrapperCol={{ span: 16 }} label="需求数量">
+                  {form.getFieldDecorator(`amount${index}`, {
+                    rules: [{ required: true, message: '请输入数量' }],
+                  })(<InputNumber maxLength={7} placeholder="请输入数量" style={{ width: '100%' }}
+                                  onChange={(v) => onChangeMould(index, 'amount', v)}/>)}
+                  {
+                    index !== 0 &&
+                    <Icon className={styles.formIcon} onClick={e => onDelMould(index)} type="minus-circle"/>
+                  }
+                </FormItem>
+              </Col>
+            </div>
+          );
+        })}
+        <Col span={24}>
+          <Button style={{ width: '100%', marginTop: 16, marginBottom: 8 }} type="dashed" onClick={onAddMould}
+                  icon="plus">
+            新增一条产品信息
+          </Button>
         </Col>
       </Row>
     </Modal>
@@ -113,8 +172,15 @@ const CreateForm = Form.create()(props => {
 class OrderList extends PureComponent {
   state = {
     modalVisible: false,
+    DraVisible: false,
     selectedRows: [],
-    modalLenght: [],
+    proList: [{ productId: '', amount: '', craftRouteId: '' }],
+    resourceList: [],
+    craftRouteList: [],//产品下的工艺线路
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
     formValues: {},
   };
 
@@ -125,31 +191,52 @@ class OrderList extends PureComponent {
     },
     {
       title: '产品编号',
-      dataIndex: 'desc',
+      dataIndex: 'productNo',
+      render (text, rows) {
+        return rows.productList ? rows.productList[0].serialNum : '';
+      },
     },
     {
       title: '产品名称',
-      dataIndex: 'street1',
+      dataIndex: 'productName',
+      render (text, rows) {
+        return rows.productList ? rows.productList[0].name : '';
+      },
     },
     {
       title: '需求数量',
-      dataIndex: 'street',
+      dataIndex: 'productAmount',
+      render (text, rows) {
+        return rows.productList ? rows.productList[0].amount : '';
+      },
+    },
+    {
+      title: '现有库存',
+      dataIndex: 'productNum',
+      render (text, rows) {
+        return rows.productList ? rows.productList[0].num : '';
+      },
+    },
+    {
+      title: '供需差额',
+      dataIndex: 'num',
+      render (text, rows) {
+        const { amount = 0, num = 0 } = rows.productList;
+        return amount > num ? amount - num : 0;
+      },
     },
     {
       title: '交货日期',
       dataIndex: 'deliveryDate',
     },
     {
-      title: '现有库存',
-      dataIndex: 'callNo',
-    },
-    {
-      title: '供需差额',
-      dataIndex: 'callNo',
-    },
-    {
       title: '距交期天数',
-      dataIndex: 'callNo',
+      dataIndex: 'deliveryDiff',
+      render (text) {
+        const deliDate = moment(text);
+        const nowDate = moment();
+        return deliDate.diff(nowDate, 'day');
+      },
     },
     {
       title: '优先级',
@@ -166,15 +253,30 @@ class OrderList extends PureComponent {
 
   componentDidMount () {
     const { dispatch } = this.props;
-    console.log(123123123);
+    const { pagination } = this.state;
     dispatch({
       type: 'order/fetch',
+      payload: {
+        pageNum: pagination.current,
+        pageSize: pagination.pageSize,
+      },
+    });
+    const that = this;
+    // 查询所有产品信息
+    dispatch({
+      type: 'resource/fetchBrief',
+      payload: { type: 2 },
+      callback (response) {
+        const { data, code } = response;
+        code == '200' && that.setState({ resourceList: data });
+      },
     });
   }
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
+  handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
+    this.setState({ pagination });
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
       const newObj = { ...obj };
@@ -198,29 +300,41 @@ class OrderList extends PureComponent {
     });
   };
 
-  // 删除
+  // 根据产品ID查询产品下的工艺线路
+  getCraftRouteListById = (proId) => {
+    const { dispatch } = this.props;
+    const that = this;
+    dispatch({
+      type: 'resource/fetchBrief',
+      payload: { type: proId },
+      callback (response) {
+        const { data, code } = response;
+        code == '200' && that.setState({ craftRouteList: data });
+      },
+    });
+  };
+
+  // 排产
   handleMenuClick = e => {
     const { dispatch } = this.props;
     const { selectedRows } = this.state;
-
+    const ids = [];
+    selectedRows.map(item => {
+      ids.push(`${item.id}`);
+      return '';
+    });
     if (selectedRows.length === 0) return;
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'order/remove',
-          payload: {
-            key: selectedRows.map(row => row.key),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
+    dispatch({
+      type: 'order/remove',
+      payload: {
+        key: selectedRows.map(row => row.key),
+      },
+      callback: () => {
+        this.setState({
+          selectedRows: [],
         });
-        break;
-      default:
-        break;
-    }
+      },
+    });
   };
 
   // 勾选选择
@@ -233,15 +347,15 @@ class OrderList extends PureComponent {
   // 显示隐藏弹框
   handleModalVisible = flag => {
     this.setState({
-      modalLenght: [],
+      proList: [{ productId: '', amount: '', craftRouteId: '' }],
       modalVisible: !!flag,
     });
   };
 
-  // 添加addModalLenght
-  handleAddModalLenght = array => {
+  // 添加addProList
+  handleAddProList = array => {
     this.setState({
-      modalLenght: JSON.parse(JSON.stringify(array)),
+      proList: JSON.parse(JSON.stringify(array)),
     });
   };
 
@@ -258,12 +372,44 @@ class OrderList extends PureComponent {
     this.handleModalVisible();
   };
 
+  handleDrawerVisible = flag => {
+    this.setState({
+      DraVisible: !!flag,
+    });
+  };
+
+  queryAllProduct = (record, index) => {
+    const { productList } = record;
+    const proColumns = [
+      {
+        title: '产品编号',
+        dataIndex: 'serialNum',
+      },
+      {
+        title: '产品名称',
+        dataIndex: 'name',
+      },
+      {
+        title: '需求数量',
+        dataIndex: 'amount',
+      },
+      {
+        title: '现有库存',
+        dataIndex: 'num',
+      },
+    ];
+    return <Table rowKey={`proTable${index}`} size={'small'} dataSource={productList} pagination={false}
+                  bordered={false}
+                  columns={proColumns}/>;
+  };
+
   render () {
-    const { order: { data }, loading } = this.props;
-    const { selectedRows, modalLenght, modalVisible } = this.state;
+    const { order: { data }, loading, dispatch } = this.props;
+    const { selectedRows, proList, modalVisible, DraVisible, resourceList } = this.state;
     const parentMethods = {
-      modalLenght,
-      handleAddModalLenght: this.handleAddModalLenght,
+      proList,
+      resourceList,
+      handleAddProList: this.handleAddProList,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
     };
@@ -272,9 +418,6 @@ class OrderList extends PureComponent {
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
-              {/* <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}> */}
-              {/* 新增 */}
-              {/* </Button> */}
               <Button type="primary" onClick={() => this.handleModalVisible(true)}>
                 新增
               </Button>
@@ -290,12 +433,24 @@ class OrderList extends PureComponent {
               selectedRows={selectedRows}
               loading={loading}
               data={data}
+              expandedRowRender={record => this.queryAllProduct(record)}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}
             />
           </div>
         </Card>
+        <Drawer
+          placement="bottom"
+          height="80%"
+          visible={DraVisible}
+          closable={false}
+          destroyOnClose
+          onClose={this.handleDrawerVisible(false)}
+          // bodyStyle={{ height: '100%', overflowX: 'hidden', padding: 0 }}
+        >
+          <OrderProduction/>
+        </Drawer>
         <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>
     );

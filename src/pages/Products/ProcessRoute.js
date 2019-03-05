@@ -1,13 +1,10 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Button, Drawer, Select, message, Input } from 'antd';
+import { Card, Button, Drawer, message } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import EditDrawer from './edit/index';
 
 import styles from './index.less';
-
-const FormItem = Form.Item;
-const { Option } = Select;
 
 const getValue = obj =>
   Object.keys(obj)
@@ -19,12 +16,13 @@ const getValue = obj =>
   proRoutes,
   loading: loading.models.proRoutes,
 }))
-@Form.create()
 class ProcessRoute extends PureComponent {
   state = {
-    modalVisible: true,
+    modalVisible: false,
     selectedRows: [],
     processList: [], // 所有工艺列表
+    resourceList: [],// 所有产品信息
+    itemData: {},// 修改时查询的数据
     pagination: {
       current: 1,
       pageSize: 10,
@@ -48,10 +46,10 @@ class ProcessRoute extends PureComponent {
       title: '加工产品',
       dataIndex: 'productName',
     },
-    {
-      title: '工序流程',
-      dataIndex: 'craftsProcess',
-    },
+    // {
+    //   title: '工序流程',
+    //   dataIndex: 'craftsProcess',
+    // },
     {
       title: '创建时间',
       dataIndex: 'createDate',
@@ -62,11 +60,11 @@ class ProcessRoute extends PureComponent {
     },
     {
       title: '操作',
-      render: (text, record) => <a>编辑</a>,
+      render: (text, record) => <a onClick={() => this.handleModalVisible(true, record)}>编辑</a>,
     },
   ];
 
-  componentDidMount() {
+  componentDidMount () {
     const { dispatch } = this.props;
     const { pagination } = this.state;
     dispatch({
@@ -76,6 +74,17 @@ class ProcessRoute extends PureComponent {
         pageSize: pagination.pageSize,
       },
     });
+    const that = this;
+    // 查询所有产品信息
+    dispatch({
+      type: 'resource/fetchBrief',
+      payload: { type: 2 },
+      callback (response) {
+        const { data, code } = response;
+        code == '200' && that.setState({ resourceList: data });
+      },
+    });
+
   }
 
   handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
@@ -138,10 +147,29 @@ class ProcessRoute extends PureComponent {
   };
 
   // 显示隐藏弹框
-  handleModalVisible = flag => {
-    this.setState({
-      modalVisible: !!flag,
-    });
+  handleModalVisible = (flag, rows) => {
+    const { dispatch } = this.props;
+    const that = this;
+    if (rows && rows.id) {
+      dispatch({
+        type: 'proRoutes/fetch_id',
+        payload: {
+          id: rows.id,
+        },
+        callback (resp) {
+          const { data = [] } = resp;
+          that.setState({
+            itemData: Object.assign(rows, { itemList: data }),
+            modalVisible: !!flag,
+          });
+        },
+      });
+    } else {
+      that.setState({
+        itemData: {},
+        modalVisible: !!flag,
+      });
+    }
   };
 
   onClose = () => {
@@ -150,32 +178,30 @@ class ProcessRoute extends PureComponent {
     });
   };
 
-  handleSubmit = () => {
-    const { form } = this.props;
-    form.validateFields((err, fieldsValue) => {
-      if (err) return;
-      form.resetFields();
-      console.log(fieldsValue);
+  handleSubmit = (params, form) => {
+    const { dispatch } = this.props;
+    const { pagination } = this.state;
+    dispatch({
+      type: 'proRoutes/add',
+      payload: {
+        ...params,
+      },
+      callback: response => {
+        if (response.code === 200) {
+          message.success('添加成功');
+          form.resetFields();
+        } else {
+          message.warning(response.message);
+        }
+        this.handleModalVisible();
+        this.handleStandardTableChange(pagination);
+      },
     });
-    // const { dispatch } = this.props;
-    // dispatch({
-    //   type: 'proRoutes/add',
-    //   payload: {
-    //     desc: fields.desc,
-    //   },
-    // });
-    // message.success('添加成功');
-    // this.handleModalVisible();
   };
 
-  render() {
-    const {
-      proRoutes: { data },
-      loading,
-      form,
-    } = this.props;
-    const { selectedRows, modalVisible } = this.state;
-    const { dispatch } = this.props;
+  render () {
+    const { proRoutes: { data }, loading, dispatch } = this.props;
+    const { selectedRows, modalVisible, resourceList, itemData } = this.state;
 
     return (
       <div>
@@ -196,6 +222,7 @@ class ProcessRoute extends PureComponent {
             <StandardTable
               selectedRows={selectedRows}
               loading={loading}
+              rowKey={'process'}
               data={data}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
@@ -204,43 +231,18 @@ class ProcessRoute extends PureComponent {
           </div>
         </Card>
         <Drawer
-          title={<div>
-            <Form layout="inline">
-              <FormItem key="title">
-                <span className={styles.titleSpan}>新增工艺路线</span>
-              </FormItem>
-              <FormItem key="name" label="工艺线路名称">
-                {form.getFieldDecorator('name', {
-                  rules: [{ required: true, message: '请输入工艺线路名称！' }, { max: 20, message: '工艺线路名称长度不能超过20字符' }],
-                })(<Input placeholder="请输入" maxLength={20}/>)}
-              </FormItem>
-              <FormItem key="type" label="产品名称">
-                {form.getFieldDecorator('product', {
-                  initialValue: 1,
-                  rules: [{ required: true, message: '请选择产品名称！' }],
-                })(
-                  <Select style={{ width: '160px' }} placeholder="请选择">
-                    <Option value={1}>原料</Option>
-                    <Option value={2}>半成品</Option>
-                    <Option value={3}>成品</Option>
-                  </Select>,
-                )}
-              </FormItem>
-              <Button style={{ float: 'right', margin: '10px 50px 0 0' }} type="default" size="small"
-                      onClick={this.onClose} icon="close-circle">取消</Button>
-              <Button className={styles.DrawerSaveBtn} type="primary" onClick={this.handleSubmit} size="small"
-                      icon="file-done">保存</Button>
-            </Form>
-          </div>}
           placement="right"
           width="100%"
           visible={modalVisible}
           closable={false}
           destroyOnClose
           onClose={this.onClose}
-          bodyStyle={{ height: 'calc(100% - 74px)', overflowX: 'hidden', padding: 0 }}
+          bodyStyle={{ height: '100%', overflowX: 'hidden', padding: 0 }}
         >
-          <EditDrawer dispatch={dispatch} data={this.processList}/>
+          <EditDrawer dispatch={dispatch} handleSubmit={this.handleSubmit}
+                      resourceList={resourceList}
+                      itemData={itemData}
+                      onClose={this.onClose} data={this.processList}/>
         </Drawer>
       </div>
     );
