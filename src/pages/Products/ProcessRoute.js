@@ -158,6 +158,9 @@ class ProcessRoute extends PureComponent {
         },
         callback (resp) {
           const { data = [] } = resp;
+          data.map(item => {
+            item.id = item.grid;
+          });
           that.setState({
             itemData: Object.assign(rows, { itemList: data }),
             modalVisible: !!flag,
@@ -180,15 +183,18 @@ class ProcessRoute extends PureComponent {
 
   handleSubmit = (params, form) => {
     const { dispatch } = this.props;
-    const { pagination } = this.state;
+    const { pagination, itemData = {} } = this.state;
+    const isAdd = !itemData.id;
+    console.log(isAdd);
     dispatch({
-      type: 'proRoutes/add',
+      type: isAdd ? 'proRoutes/add' : 'proRoutes/update',
       payload: {
+        id: itemData.id,
         ...params,
       },
       callback: response => {
         if (response.code === 200) {
-          message.success('添加成功');
+          message.success(isAdd ? '添加成功' : '更新成功');
           form.resetFields();
         } else {
           message.warning(response.message);

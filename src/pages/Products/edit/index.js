@@ -94,11 +94,9 @@ class Editor extends Component {
       // 如果是修改数据
       this.setState({
         isAdd: false,
-        dataList: itemData.itemList || [],
         relation: JSON.parse(itemData.position),
       });
     }
-
     const page = this.editor.getCurrentPage();
     // 显示网格线
     page.showGrid();
@@ -205,7 +203,8 @@ class Editor extends Component {
             });
           }
         });
-        that.setState({ dataList: listArr });
+
+        that.setState({ dataList: itemData.itemList || [] });
       },
     });
 
@@ -283,6 +282,7 @@ class Editor extends Component {
   render () {
     const { relation, dataList, data, isAdd, equipList, parentData } = this.state;
     const { resourceList, form, handleSubmit, onClose, itemData = {} } = this.props;
+    console.log(dataList);
 
     const submitBefore = () => {
       form.validateFields((err, fieldsValue) => {

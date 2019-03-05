@@ -1,4 +1,4 @@
-import { queryOrderList } from '@/services/api';
+import { queryOrderList, addOrder } from '@/services/api';
 
 export default {
   namespace: 'order',
@@ -31,7 +31,10 @@ export default {
         payload: resData,
       });
     },
-
+    * add ({ payload, callback }, { call, put }) {
+      const response = yield call(addOrder, payload);
+      if (callback) callback(response);
+    },
   },
 
   reducers: {

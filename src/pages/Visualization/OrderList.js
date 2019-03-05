@@ -29,7 +29,7 @@ const getValue = obj =>
     .join(',');
 
 const CreateForm = Form.create()(props => {
-  const { modalVisible, form, resourceList, handleAdd, handleModalVisible, proList, handleAddProList } = props;
+  const { modalVisible, form, resourceList, handleAdd, craftRouteList, changeProInfo, handleModalVisible, proList, handleAddProList } = props;
   const onAddMould = () => {
     const obj = proList;
     obj.push({ productId: '', amount: '', craftRouteId: '' });
@@ -44,18 +44,21 @@ const CreateForm = Form.create()(props => {
     const obj = [...proList];
     obj[index][key] = value;
     handleAddProList(obj);
+    if (key === 'productId') {
+      changeProInfo(value);
+    }
   };
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
-      console.log(fieldsValue, proList);
       const params = {};
-      params.orderTime = moment(fieldsValue.orderTime).format('YYYY-MM-DD');
+      params.orderDate = moment(fieldsValue.orderDate).format('YYYY-MM-DD');
       params.deliveryDate = moment(fieldsValue.deliveryDate).format('YYYY-MM-DD');
       params.priority = fieldsValue.priority;
+      params.serialNum = fieldsValue.serialNum;
+      params.customer = fieldsValue.customer;
       params.productList = [...proList];
-      // form.resetFields();
-      // handleAdd(fieldsValue);
+      handleAdd(params, form);
     });
   };
   return (
@@ -70,21 +73,21 @@ const CreateForm = Form.create()(props => {
       <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
         <Col span={12}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="订单号">
-            {form.getFieldDecorator('orderId', {
+            {form.getFieldDecorator('serialNum', {
               rules: [{ required: true, message: '请输入订单号' }],
             })(<Input placeholder="请输入订单号" maxLength={20}/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="客户名称">
-            {form.getFieldDecorator('userName', {
+            {form.getFieldDecorator('customer', {
               rules: [{ required: true, message: '客户名称' }],
             })(<Input placeholder="请输入客户名称"/>)}
           </FormItem>
         </Col>
         <Col span={12}>
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="下单日期">
-            {form.getFieldDecorator('orderTime', {
+            {form.getFieldDecorator('orderDate', {
               rules: [{ required: true, message: '请选择下单日期' }],
             })(<DatePicker placeholder="请选择下单日期" style={{ width: '100%' }}/>)}
           </FormItem>
@@ -100,7 +103,7 @@ const CreateForm = Form.create()(props => {
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="优先级">
             {form.getFieldDecorator('priority', {
               rules: [{ required: true, message: '请输入优先级' }],
-            })(<Input placeholder="请输入优先级"/>)}
+            })(<InputNumber max={100} min={1} style={{ width: '100%' }} placeholder="请输入优先级"/>)}
           </FormItem>
         </Col>
         <Col span={12} className={styles.noDataFill}/>
@@ -129,8 +132,8 @@ const CreateForm = Form.create()(props => {
                   })(
                     <Select style={{ width: '100%' }} onChange={(v) => onChangeMould(index, 'craftRouteId', v)}>
                       {
-                        resourceList.map(item => {
-                          return (<Option key={item.serial_num} value={item.materialId}>{item.materialName}</Option>);
+                        craftRouteList.map(item => {
+                          return (<Option key={item.id} value={item.id}>{item.name}</Option>);
                         })
                       }
                     </Select>,
@@ -141,7 +144,7 @@ const CreateForm = Form.create()(props => {
                 <FormItem key="type" labelCol={{ span: 7 }} wrapperCol={{ span: 16 }} label="需求数量">
                   {form.getFieldDecorator(`amount${index}`, {
                     rules: [{ required: true, message: '请输入数量' }],
-                  })(<InputNumber maxLength={7} placeholder="请输入数量" style={{ width: '100%' }}
+                  })(<InputNumber maxLength={7} min={0} placeholder="请输入数量" style={{ width: '100%' }}
                                   onChange={(v) => onChangeMould(index, 'amount', v)}/>)}
                   {
                     index !== 0 &&
@@ -305,8 +308,8 @@ class OrderList extends PureComponent {
     const { dispatch } = this.props;
     const that = this;
     dispatch({
-      type: 'resource/fetchBrief',
-      payload: { type: proId },
+      type: 'resource/fetchRouter',
+      payload: { id: proId },
       callback (response) {
         const { data, code } = response;
         code == '200' && that.setState({ craftRouteList: data });
@@ -359,17 +362,27 @@ class OrderList extends PureComponent {
     });
   };
 
-  handleAdd = fields => {
+  handleAdd = (fields, form) => {
     const { dispatch } = this.props;
+    const that = this;
+
     dispatch({
       type: 'order/add',
       payload: {
-        desc: fields.desc,
+        ...fields,
+      },
+      callback (resp) {
+        const { pagination } = that.state;
+        if (resp.code === 200) {
+          message.success('添加成功');
+          form.resetFields();
+          that.handleModalVisible(false);
+          that.handleStandardTableChange(pagination);
+        } else {
+          message.warning(resp.message);
+        }
       },
     });
-
-    message.success('添加成功');
-    this.handleModalVisible();
   };
 
   handleDrawerVisible = flag => {
@@ -405,10 +418,12 @@ class OrderList extends PureComponent {
 
   render () {
     const { order: { data }, loading, dispatch } = this.props;
-    const { selectedRows, proList, modalVisible, DraVisible, resourceList } = this.state;
+    const { selectedRows, proList, modalVisible, DraVisible, resourceList, craftRouteList } = this.state;
     const parentMethods = {
       proList,
       resourceList,
+      craftRouteList,
+      changeProInfo: this.getCraftRouteListById,
       handleAddProList: this.handleAddProList,
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
