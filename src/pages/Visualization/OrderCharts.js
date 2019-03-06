@@ -1,10 +1,21 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Table, Input, Select, Button, Col, Row, Modal, message, Radio } from 'antd';
+import { Card, Table, DatePicker, Select, Button, Col, Row, Modal, message, Radio } from 'antd';
+import moment from 'moment/moment';
 
-class OrderProduction extends PureComponent {
+const { RangePicker } = DatePicker;
+
+@connect(({ materials, loading }) => ({
+  materials,
+  loading: loading.models.materials,
+}))
+class OrderCharts extends PureComponent {
   state = {
     timeColumns: [],
+    formValues: {
+      startDate: moment().format('YYYY-MM-DD'),
+      endDate: moment().subtract(-30, 'days').format('YYYY-MM-DD'),
+    },
   };
 
   baseColumns = [
@@ -40,10 +51,16 @@ class OrderProduction extends PureComponent {
     });
     this.setState({ timeColumns: colList });
   }
+  getFormValues (values) {
+    const { dispatch } = this.props;
+    // dispatch({
+    //   type: 'materials/fetch',
+    //   payload: { ...values },
+    // });
+  }
 
   render () {
-    const { timeColumns } = this.state;
-    const { onClose } = this.props;
+    const { timeColumns, formValues } = this.state;
     const infoBoxStyle = {
       display: 'flex',
     };
@@ -52,15 +69,21 @@ class OrderProduction extends PureComponent {
       fontSize: '16px',
       fontWeight: 600,
     };
-    const btnBoxStyle = {
-      position: 'absolute',
-      bottom: '10',
-      marginTop: '30px',
-      width: '100%',
-      padding: '5px 64px',
-      textAlign: 'right',
+    const onChange = (dateString) => {
+      const values = { ...formValues };
+      values.startDate = dateString[0];
+      values.endDate = dateString[1];
+      this.getFormValues(values);
     };
     return (<div style={{ position: 'relative' }}><Card bordered={false}>
+      <div style={{ borderBottom: '1px solid #e2e2e2' }}>
+        <span>筛选日期：</span>
+        <RangePicker
+          defaultValue={[moment(formValues.startDate), moment(formValues.endDate)]}
+          onChange={(e, dateString) => onChange(dateString)}/>
+        <br/>
+        <br/>
+      </div>
       <div style={infoBoxStyle}>
         <div className='baseInfo' style={{ width: '480px' }}>
           <Table pagination={false} title={() => <div style={titleStyle}>基础信息</div>}
@@ -73,13 +96,8 @@ class OrderProduction extends PureComponent {
                  dataSource={[]}/>
         </div>
       </div>
-      <div style={btnBoxStyle}>
-        <Button type='primary'>一键优化</Button> &nbsp;&nbsp;
-        <Button type='primary'>保存</Button>&nbsp;&nbsp;&nbsp;
-        <Button type='default' onClick={onClose}>关闭</Button>
-      </div>
     </Card></div>);
   };
 }
 
-export default OrderProduction;
+export default OrderCharts;

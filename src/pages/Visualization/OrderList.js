@@ -7,9 +7,10 @@ import {
   DatePicker,
   Button,
   InputNumber,
-  Col,
+  Progress, Col,
   Row,
   Table,
+  Spin,
   Icon,
   Select,
   Modal,
@@ -178,11 +179,13 @@ class OrderList extends PureComponent {
   state = {
     modalVisible: false,
     draVisible: false,
+    scheVisible: false,
     selectedRows: [],
     proList: [{ productId: '', amount: '', craftRouteId: '' }],
     resourceList: [],
     craftRouteList: [],//产品下的工艺线路
     scheduleType: 1,
+    progress: 0,
     pagination: {
       current: 1,
       pageSize: 10,
@@ -396,11 +399,14 @@ class OrderList extends PureComponent {
   };
   onClose = () => {
     this.setState({
+      scheduleType: 1,
       draVisible: false,
     });
   };
   scheduleTypeChange = (v) => {
-
+    this.setState({
+      scheduleType: v.target.value || '',
+    });
   };
 
   queryAllProduct = (record, index) => {
@@ -428,9 +434,21 @@ class OrderList extends PureComponent {
                   columns={proColumns}/>;
   };
 
+  setScheVisible = (v) => {
+    const interval = setTimeout(() => {
+      this.setState({ progress: 50 });
+      clearTimeout(interval);
+    }, 1200);
+    this.setState({ scheVisible: v });
+  };
+
+  clearScheVisible = () => {
+    this.setState({ scheVisible: false, progress: 0 });
+  };
+
   render () {
     const { order: { data }, loading, dispatch } = this.props;
-    const { selectedRows, proList, modalVisible, draVisible, resourceList, craftRouteList } = this.state;
+    const { selectedRows, proList, modalVisible, progress, draVisible, resourceList, craftRouteList, scheVisible } = this.state;
     const parentMethods = {
       proList,
       resourceList,
@@ -442,7 +460,7 @@ class OrderList extends PureComponent {
     };
     const titleStyle = {
       display: 'flex',
-      justifyContent:'space-between'
+      justifyContent: 'space-between',
     };
     return (
       <div>
@@ -476,7 +494,7 @@ class OrderList extends PureComponent {
           height="80%"
           title={<div style={titleStyle}>
             <div>
-              <span style={{ 'font-weight': 600, 'padding': '0 50px 0 20px' }}>订单策略</span>
+              <span style={{ 'fontWeight': 600, 'padding': '0 50px 0 20px' }}>订单策略</span>
               制令单的生成方式：
               <RadioGroup onChange={this.scheduleTypeChange} value={this.state.scheduleType}>
                 <Radio value={1}>按天生成</Radio>
@@ -484,7 +502,7 @@ class OrderList extends PureComponent {
               </RadioGroup>
             </div>
             <div>
-              <Button type={'primary'}>排程</Button>
+              <Button type={'primary'} onClick={() => {this.setScheVisible(true);}}>排程</Button>
             </div>
           </div>}
           visible={draVisible}
@@ -492,8 +510,19 @@ class OrderList extends PureComponent {
           destroyOnClose
           onClose={this.onClose}
         >
-          <OrderProduction/>
+          <OrderProduction onClose={this.onClose}/>
         </Drawer>
+        <Modal title="任务排产中" visible={scheVisible} footer={null} onCancel={() => {this.setScheVisible(false);}}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ marginBottom: 30 }}><Spin size='large' tip='loading...'/></p>
+            <p style={{ marginBottom: 30 }}>正在努力排产中，排产时间可能过长，请稍等...</p>
+            <p style={{ marginBottom: 40 }}><Progress percent={progress} status="active"/></p>
+            <p><Button type={'default'}
+                       onClick={this.clearScheVisible}> &nbsp; &nbsp; &nbsp;取&nbsp; &nbsp;消 &nbsp; &nbsp; &nbsp;</Button>
+            </p>
+          </div>
+
+        </Modal>
         <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>
     );

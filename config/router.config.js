@@ -100,7 +100,7 @@ export default [
           {
             path: '/visualization/order-chart',
             name: 'order-chart',
-            component: './List/TableList',
+            component: './Visualization/OrderCharts',
           },
           {
             path: '/visualization/equipment',
