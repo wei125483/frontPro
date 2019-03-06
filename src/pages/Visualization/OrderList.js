@@ -12,6 +12,7 @@ import {
   Table,
   Spin,
   Icon,
+  Popconfirm,
   Select,
   Modal,
   Drawer,
@@ -185,6 +186,8 @@ class OrderList extends PureComponent {
     resourceList: [],
     craftRouteList: [],//产品下的工艺线路
     scheduleType: 1,
+    resultList: [], // 排程结果
+    interval: null,
     progress: 0,
     pagination: {
       current: 1,
@@ -201,35 +204,35 @@ class OrderList extends PureComponent {
     {
       title: '产品编号',
       dataIndex: 'productNo',
-      render (text, rows) {
+      render(text, rows) {
         return rows.productList ? rows.productList[0].serialNum : '';
       },
     },
     {
       title: '产品名称',
       dataIndex: 'productName',
-      render (text, rows) {
+      render(text, rows) {
         return rows.productList ? rows.productList[0].name : '';
       },
     },
     {
       title: '需求数量',
       dataIndex: 'productAmount',
-      render (text, rows) {
+      render(text, rows) {
         return rows.productList ? rows.productList[0].amount : '';
       },
     },
     {
       title: '现有库存',
       dataIndex: 'productNum',
-      render (text, rows) {
+      render(text, rows) {
         return rows.productList ? rows.productList[0].num : '';
       },
     },
     {
       title: '供需差额',
       dataIndex: 'num',
-      render (text, rows) {
+      render(text, rows) {
         const { amount = 0, num = 0 } = rows.productList;
         return amount > num ? amount - num : 0;
       },
@@ -241,7 +244,7 @@ class OrderList extends PureComponent {
     {
       title: '距交期天数',
       dataIndex: 'deliveryDiff',
-      render (text) {
+      render(text) {
         const deliDate = moment(text);
         const nowDate = moment();
         return deliDate.diff(nowDate, 'day');
@@ -254,13 +257,13 @@ class OrderList extends PureComponent {
     {
       title: '状态',
       dataIndex: 'status',
-      render (t = 2) {
+      render(t = 2) {
         return ['未排程', '已排程', ''][t];
       },
     },
   ];
 
-  componentDidMount () {
+  componentDidMount() {
     const { dispatch } = this.props;
     const { pagination } = this.state;
     dispatch({
@@ -275,7 +278,7 @@ class OrderList extends PureComponent {
     dispatch({
       type: 'resource/fetchBrief',
       payload: { type: 2 },
-      callback (response) {
+      callback(response) {
         const { data, code } = response;
         code == '200' && that.setState({ resourceList: data });
       },
@@ -316,7 +319,7 @@ class OrderList extends PureComponent {
     dispatch({
       type: 'resource/fetchRouter',
       payload: { id: proId },
-      callback (response) {
+      callback(response) {
         const { data, code } = response;
         code == '200' && that.setState({ craftRouteList: data });
       },
@@ -325,26 +328,32 @@ class OrderList extends PureComponent {
 
   // 排产
   handleMenuClick = e => {
+    const { selectedRows, interval } = this.state;
     const { dispatch } = this.props;
-    const { selectedRows, draVisible } = this.state;
+    const that = this;
     const ids = [];
     selectedRows.map(item => {
       ids.push(`${item.id}`);
       return '';
     });
     if (selectedRows.length === 0) return;
+
     this.handleDrawerVisible(true);
-    // dispatch({
-    //   type: 'order/remove',
-    //   payload: {
-    //     key: selectedRows.map(row => row.key),
-    //   },
-    //   callback: () => {
-    //     this.setState({
-    //       selectedRows: [],
-    //     });
-    //   },
-    // });
+    this.setState({
+      orderIds: ids,
+    });
+
+    dispatch({
+      type: 'order/orderProgress',
+      callback(response) {
+        const { data } = response;
+        if (data.isFinish) {
+          clearInterval(interval);
+          that.setState({ interval: null, resultList: data.result });
+        }
+      },
+    });
+
   };
 
   // 勾选选择
@@ -378,7 +387,7 @@ class OrderList extends PureComponent {
       payload: {
         ...fields,
       },
-      callback (resp) {
+      callback(resp) {
         const { pagination } = that.state;
         if (resp.code === 200) {
           message.success('添加成功');
@@ -400,6 +409,7 @@ class OrderList extends PureComponent {
   onClose = () => {
     this.setState({
       scheduleType: 1,
+      orderIds: [],
       draVisible: false,
     });
   };
@@ -435,20 +445,66 @@ class OrderList extends PureComponent {
   };
 
   setScheVisible = (v) => {
-    const interval = setTimeout(() => {
+    const { dispatch } = this.props;
+    const { scheduleType, orderIds } = this.state;
+    let interval = null;
+    const timeout = setTimeout(() => {
       this.setState({ progress: 50 });
-      clearTimeout(interval);
+      clearTimeout(timeout);
     }, 1200);
     this.setState({ scheVisible: v });
+
+    const that = this;
+    // 订单排程任务提交
+    dispatch({
+      type: 'order/schedule',
+      payload: { type: scheduleType, orderIds: orderIds.toString() },
+      callback(response) {
+        const { code } = response;
+        if (code === 200) {
+          interval = setInterval(() => {
+            // 3秒请求是否排程完成
+            dispatch({
+              type: 'order/orderProgress',
+              callback(response) {
+                const { data } = response;
+                if (data.isFinish) {
+                  clearInterval(interval);
+                  that.setState({ interval: null, resultList: data.result });
+                }
+              },
+            });
+          }, 3000);
+          that.setState({ interval });
+        } else {
+          message.warning(response.message);
+        }
+      },
+    });
   };
 
   clearScheVisible = () => {
-    this.setState({ scheVisible: false, progress: 0 });
+
+    const { dispatch } = this.props;
+    const { interval } = this.state;
+    const that = this;
+    // 取消订单排程
+    dispatch({
+      type: 'order/orderCancel',
+      callback(response) {
+        const { code } = response;
+        clearInterval(interval);
+        that.setState({ scheVisible: false, progress: 0, interval: null });
+        if (code !== 200) {
+          message.warning(response.message);
+        }
+      },
+    });
   };
 
-  render () {
-    const { order: { data }, loading, dispatch } = this.props;
-    const { selectedRows, proList, modalVisible, progress, draVisible, resourceList, craftRouteList, scheVisible } = this.state;
+  render() {
+    const { order: { data }, loading } = this.props;
+    const { selectedRows, proList, orderIds, modalVisible, progress, draVisible, resourceList, craftRouteList, scheVisible, resultList } = this.state;
     const parentMethods = {
       proList,
       resourceList,
@@ -502,7 +558,9 @@ class OrderList extends PureComponent {
               </RadioGroup>
             </div>
             <div>
-              <Button type={'primary'} onClick={() => {this.setScheVisible(true);}}>排程</Button>
+              <Button type={'primary'} onClick={() => {
+                this.setScheVisible(true);
+              }}>排程</Button>
             </div>
           </div>}
           visible={draVisible}
@@ -510,18 +568,20 @@ class OrderList extends PureComponent {
           destroyOnClose
           onClose={this.onClose}
         >
-          <OrderProduction onClose={this.onClose}/>
+          <OrderProduction orderIds={orderIds} dataList={resultList} onClose={this.onClose}/>
         </Drawer>
-        <Modal title="任务排产中" visible={scheVisible} footer={null} onCancel={() => {this.setScheVisible(false);}}>
+        <Modal title="任务排产中" visible={scheVisible} footer={null} closable={false} maskClosable={false}>
           <div style={{ textAlign: 'center' }}>
-            <p style={{ marginBottom: 30 }}><Spin size='large' tip='loading...'/></p>
-            <p style={{ marginBottom: 30 }}>正在努力排产中，排产时间可能过长，请稍等...</p>
-            <p style={{ marginBottom: 40 }}><Progress percent={progress} status="active"/></p>
-            <p><Button type={'default'}
-                       onClick={this.clearScheVisible}> &nbsp; &nbsp; &nbsp;取&nbsp; &nbsp;消 &nbsp; &nbsp; &nbsp;</Button>
-            </p>
+            <div style={{ marginBottom: 30 }}><Spin size='large' tip='loading...'/></div>
+            <div style={{ marginBottom: 30 }}>正在努力排产中，排产时间可能过长，请稍等...</div>
+            <div style={{ marginBottom: 40 }}><Progress percent={progress} status="active"/></div>
+            <div>
+              <Popconfirm title="确定要终止排程吗？" onConfirm={this.clearScheVisible}
+                          icon={<Icon type="question-circle-o" style={{ color: 'red' }}/>}>
+                <Button type={'default'}> &nbsp; &nbsp; &nbsp;取&nbsp; &nbsp;消 &nbsp; &nbsp; &nbsp;</Button>
+              </Popconfirm>,
+            </div>
           </div>
-
         </Modal>
         <CreateForm {...parentMethods} modalVisible={modalVisible}/>
       </div>

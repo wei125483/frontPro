@@ -1,4 +1,13 @@
-import { queryOrderList, addOrder } from '@/services/api';
+import {
+  queryOrderList,
+  addOrder,
+  scheduleOrder,
+  scheduleCancel,
+  queryOrderProgress,
+  scheduleExecute,
+  scheduleOptimize,
+} from '@/services/api';
+import moment from 'moment';
 
 export default {
   namespace: 'order',
@@ -11,7 +20,7 @@ export default {
   },
 
   effects: {
-    * fetch ({ payload }, { call, put }) {
+    * fetch({ payload }, { call, put }) {
       const response = yield call(queryOrderList, payload);
       const resData = {
         list: response.data.list || [],
@@ -22,7 +31,10 @@ export default {
         },
       };
       resData.list.map(item => {
-        if (item.status != 0 && item.status != 1) {
+        const date = moment();
+        const deliveryDate = moment(item.deliveryDate);
+        const time = (date - deliveryDate) / (24 * 60 * 60 * 1000);
+        if (item.status != 0 || time >= 1) {
           Object.assign(item, { disabled: true });
         }
       });
@@ -31,14 +43,34 @@ export default {
         payload: resData,
       });
     },
-    * add ({ payload, callback }, { call, put }) {
+    * add({ payload, callback }, { call, put }) {
       const response = yield call(addOrder, payload);
+      if (callback) callback(response);
+    },
+    * schedule({ payload, callback }, { call }) {
+      const response = yield call(scheduleOrder, payload);
+      if (callback) callback(response);
+    },
+    * orderCancel({ payload, callback }, { call }) {
+      const response = yield call(scheduleCancel, payload);
+      if (callback) callback(response);
+    },
+    * orderProgress({ payload, callback }, { call }) {
+      const response = yield call(queryOrderProgress, payload);
+      if (callback) callback(response);
+    },
+    * optimize({ payload, callback }, { call }) {
+      const response = yield call(scheduleOptimize, payload);
+      if (callback) callback(response);
+    },
+    * orderExecute({ payload, callback }, { call }) {
+      const response = yield call(scheduleExecute, payload);
       if (callback) callback(response);
     },
   },
 
   reducers: {
-    save (state, action) {
+    save(state, action) {
       return {
         ...state,
         data: action.payload,
