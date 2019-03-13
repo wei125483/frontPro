@@ -178,6 +178,8 @@ class ShiftsList extends PureComponent {
                         <Col span={14}>{weeks[(item.weekStart - 1) || 0]}</Col>
                         <Col span={10}>结束周期</Col>
                         <Col span={14}>{weeks[(item.weekEnd - 1) || 0]}</Col>
+                        <Col span={10}>开始日期</Col>
+                        <Col span={14}>{item.startDate}</Col>
                         <Col span={10}>截止日期</Col>
                         <Col span={14}>{item.endDate}</Col>
                         <Col span={10}>状态</Col>

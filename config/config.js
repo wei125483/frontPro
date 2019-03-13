@@ -60,6 +60,7 @@ if (APP_TYPE === 'site') {
 
 export default {
   // add for transfer to umi
+  history: 'hash',
   plugins,
   define: {
     APP_TYPE: APP_TYPE || '',
@@ -77,15 +78,15 @@ export default {
   },
   externals: {
     '@antv/data-set': 'DataSet',
-    // bizcharts: 'BizCharts',
+    bizcharts: 'BizCharts',
   },
   proxy: {
-    '/server/api/': {
+    '/api/': {
       target: 'https://preview.pro.ant.design/',
       changeOrigin: true,
       pathRewrite: { '^/server': '' }, // http://localhost:8000/server/api/currentUser -> https://preview.pro.ant.design/api/currentUser
     },
-    '/server/aps/': {
+    '/aps/': {
       target: 'http://113.106.60.50:18088/',
       changeOrigin: true,
       pathRewrite: { '^/server': '' },

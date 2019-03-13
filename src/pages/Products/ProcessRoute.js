@@ -185,7 +185,6 @@ class ProcessRoute extends PureComponent {
     const { dispatch } = this.props;
     const { pagination, itemData = {} } = this.state;
     const isAdd = !itemData.id;
-    console.log(isAdd);
     dispatch({
       type: isAdd ? 'proRoutes/add' : 'proRoutes/update',
       payload: {
@@ -196,11 +195,11 @@ class ProcessRoute extends PureComponent {
         if (response.code === 200) {
           message.success(isAdd ? '添加成功' : '更新成功');
           form.resetFields();
+          this.handleModalVisible();
+          this.handleStandardTableChange(pagination);
         } else {
           message.warning(response.message);
         }
-        this.handleModalVisible();
-        this.handleStandardTableChange(pagination);
       },
     });
   };

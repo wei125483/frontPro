@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Input, Select, Button, Col, Row, Modal, message, Radio } from 'antd';
+import { Card, Form, Input, Select, Button, Col, Row, Modal, message, InputNumber, Radio } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
@@ -9,19 +9,21 @@ const FormItem = Form.Item;
 const { Option } = Select;
 
 const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible, itemData = {} } = props;
+  const { modalVisible, form, handleAdd, handleModalVisible, changeSelfPro, isSelfPro, itemData = {} } = props;
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
-      form.resetFields();
-      handleAdd(fieldsValue);
+      handleAdd(fieldsValue, form);
     });
+  };
+  const onChange = (v) => {
+    changeSelfPro(v === 2);
   };
   return (
     <Modal
       destroyOnClose
       width={1000}
-      title="新增库存"
+      title={itemData.id ? '修改库存信息' : '新增库存信息'}
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
@@ -31,7 +33,7 @@ const CreateForm = Form.create()(props => {
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品名称">
             {form.getFieldDecorator('name', {
               initialValue: itemData.name || '',
-              rules: [{ required: true }],
+              rules: [{ required: true, message: '请输入产品名称' }],
             })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
@@ -39,7 +41,7 @@ const CreateForm = Form.create()(props => {
           <FormItem key="proId" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品编号">
             {form.getFieldDecorator('serialNum', {
               initialValue: itemData.serialNum || '',
-              rules: [{ required: true }],
+              rules: [{ required: true, message: '请输入产品编号' }],
             })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
@@ -47,7 +49,7 @@ const CreateForm = Form.create()(props => {
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品类型">
             {form.getFieldDecorator('productType', {
               initialValue: itemData.productType || 1,
-              rules: [{ required: true }],
+              rules: [{ required: true, message: '请选择产品类型' }],
             })(
               <Select style={{ width: '100%' }} placeholder="请选择">
                 <Option value={1}>原料</Option>
@@ -61,20 +63,41 @@ const CreateForm = Form.create()(props => {
           <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="生产类型">
             {form.getFieldDecorator('sourceType', {
               initialValue: itemData.sourceType || 1,
-              rules: [{ required: true }],
+              rules: [{ required: true, message: '请选择生产类型' }],
             })(
-              <Select style={{ width: '100%' }} placeholder="请选择">
+              <Select style={{ width: '100%' }} onChange={onChange} placeholder="请选择">
                 <Option value={1}>采购</Option>
                 <Option value={2}>自产</Option>
               </Select>,
             )}
           </FormItem>
         </Col>
+        {
+          isSelfPro && !itemData.id && <React.Fragment>
+            <Col span={12}>
+              <FormItem key="unit" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品规则">
+                {form.getFieldDecorator('specification', {
+                  initialValue: itemData.specification || '',
+                  rules: [{ required: true, message: '请输入产品规则' }],
+                })(<Input placeholder="请输入"/>)}
+              </FormItem>
+            </Col>
+            <Col span={12}>
+              <FormItem key="num" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="料品颜色">
+                {form.getFieldDecorator('color', {
+                  initialValue: itemData.color || '',
+                  rules: [{ required: true, message: '请输入料品颜色' }],
+                })(<Input placeholder="请输入"/>)}
+              </FormItem>
+            </Col>
+          </React.Fragment>
+        }
+
         <Col span={12}>
           <FormItem key="unit" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="单位">
             {form.getFieldDecorator('unit', {
               initialValue: itemData.unit || '',
-              rules: [{ required: true }],
+              rules: [{ required: true, message: '请输入单位' }],
             })(<Input placeholder="请输入"/>)}
           </FormItem>
         </Col>
@@ -82,8 +105,8 @@ const CreateForm = Form.create()(props => {
           <FormItem key="num" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="当前库存">
             {form.getFieldDecorator('num', {
               initialValue: itemData.num || '',
-              rules: [{ required: true }],
-            })(<Input placeholder="请输入"/>)}
+              rules: [{ required: true, message: '请输入当前库存' }],
+            })(<InputNumber style={{ width: '100%' }} max={9999999} placeholder="请输入"/>)}
           </FormItem>
         </Col>
       </Row>
@@ -102,6 +125,7 @@ class ResourceList extends PureComponent {
     modalVisible: false,
     selectedRows: [],
     itemData: {},
+    isSelfPro: false,
     pagination: {
       current: 1,
       pageSize: 10,
@@ -120,7 +144,7 @@ class ResourceList extends PureComponent {
     },
     {
       title: '料品编号',
-      dataIndex: 'materialNum',
+      dataIndex: 'serialNum',
     },
     {
       title: '产品类型',
@@ -237,6 +261,7 @@ class ResourceList extends PureComponent {
   handleModalVisible = flag => {
     this.setState({
       itemData: {},
+      isSelfPro: false,
       modalVisible: !!flag,
     });
   };
@@ -245,12 +270,13 @@ class ResourceList extends PureComponent {
   updateModalVisible = obj => {
     this.setState({
       itemData: obj,
+      isSelfPro: obj.sourceType === 2,
       modalVisible: true,
     });
   };
 
   // 添加执行函数
-  handleAdd = fields => {
+  handleAdd = (fields, form) => {
     const { dispatch } = this.props;
     const { itemData, pagination } = this.state;
     const isAdd = !itemData.name;
@@ -261,6 +287,7 @@ class ResourceList extends PureComponent {
         : Object.assign(itemData, fields),
       callback: response => {
         if (response.code === 200) {
+          form.resetFields();
           message.success(isAdd ? '添加成功' : '更新成功');
           this.handleModalVisible();
           this.handleStandardTableChange(pagination);
@@ -271,15 +298,23 @@ class ResourceList extends PureComponent {
     });
   };
 
+  changeSelfPro = v => {
+    this.setState({
+      isSelfPro: v,
+    });
+  };
+
   render () {
     const {
       resource: { data },
       loading,
     } = this.props;
-    const { selectedRows, modalVisible, itemData } = this.state;
+    const { selectedRows, modalVisible, itemData, isSelfPro } = this.state;
 
     const parentMethods = {
+      isSelfPro,
       handleAdd: this.handleAdd,
+      changeSelfPro: this.changeSelfPro,
       itemData, // 修改数据时，赋值对象
       handleModalVisible: this.handleModalVisible,
     };
@@ -289,9 +324,9 @@ class ResourceList extends PureComponent {
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
               <Radio.Group defaultValue="1" onChange={this.handleSearch} buttonStyle="solid">
-                <Radio.Button value="1">成品</Radio.Button>
+                <Radio.Button value="1">原料</Radio.Button>
                 <Radio.Button value="2">半成品</Radio.Button>
-                <Radio.Button value="3">原料</Radio.Button>
+                <Radio.Button value="3">成品</Radio.Button>
               </Radio.Group>
               <Button
                 className={styles.add}

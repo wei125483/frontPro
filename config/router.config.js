@@ -105,17 +105,20 @@ export default [
           {
             path: '/visualization/equipment',
             name: 'equipment',
-            component: './Visualization/EquipmentCharts',
+            // component: './Visualization/EquipmentCharts',
+            component: './Visualization/EquipmentList',
           },
           {
             path: '/visualization/mould',
             name: 'mould',
-            component: './Visualization/MouldCharts',
+            // component: './Visualization/MouldCharts',
+            component: './Visualization/MouldList',
           },
           {
             path: '/visualization/feeding',
             name: 'feeding',
-            component: './Visualization/FeedingCharts',
+            // component: './Visualization/FeedingCharts',
+            component: './Visualization/FeedingList',
           },
         ],
       },

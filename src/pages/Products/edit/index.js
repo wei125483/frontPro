@@ -282,12 +282,58 @@ class Editor extends Component {
   render () {
     const { relation, dataList, data, isAdd, equipList, parentData } = this.state;
     const { resourceList, form, handleSubmit, onClose, itemData = {} } = this.props;
-    console.log(dataList);
+
+    // 递归判断图例信息是否填写完整
+    const checkPraentData = (pData) => {
+      if (!pData.craftsId || !pData.produceId || !pData.minLimitNum || pData.devices.length < 1) {
+        return false;
+      }
+      let flag = true;
+      for (let i = 0; i < pData.children.length; i++) {
+        const item = pData.children[i];
+        let devFlag = true;
+        if (!item.craftsId || !item.produceId || !item.minLimitNum || item.devices.length < 1) {
+          flag = false;
+          break;
+        }
+        for (let j = 0; j < item.devices.length; j++) {
+          const device = item.devices[j];
+          if (!device.id || !device.productivity) {
+            devFlag = false;
+            break;
+          }
+        }
+        if (!devFlag) {
+          flag = false;
+          break;
+        }
+        return checkPraentData(item);
+      }
+      return flag;
+    };
 
     const submitBefore = () => {
       form.validateFields((err, fieldsValue) => {
         if (err) return;
         // message.warning('请新增线路图');
+
+        // 如果没有线路图信息 返回false
+        if (!parentData.grid) {
+          message.warning('请将线路信息填写完整！');
+          return;
+        }
+
+        // 如果图例个数大于1 就一定要有children 否则返回false
+        if (relation.nodes && relation.nodes.length > 1 && parentData.children.length < 1) {
+          message.warning('请将线路信息连接完整！');
+          return;
+        }
+
+        // 每个图例的信息都是必填项 否则返回false
+        if (!checkPraentData(parentData)) {
+          message.warning('请点击图例将线路信息补充完整！');
+          return;
+        }
         const params = Object.assign({}, {
           ...fieldsValue,
           position: JSON.stringify(relation),

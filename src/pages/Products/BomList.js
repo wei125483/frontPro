@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Card, Form, Input, Button, Col, Row, Icon, Modal, Select, message } from 'antd';
+import { Card, Form, Input, Button, Col, Row, Icon, Modal, Select, message, Tag, Table } from 'antd';
 import StandardTable from '@/components/StandardTable';
 
 import styles from './index.less';
@@ -16,7 +16,6 @@ const CreateForm = Form.create()(props => {
   const { modalVisible, form, handleAdd, state, handleModalVisible, handleAddModalLenght } = props;
 
   const { modalLenght = [], productList, resourceList, itemData = {} } = state;
-
   const onAddMould = () => {
     const obj = [...modalLenght];
     obj.push({ id: '', num: '', unit: '' });
@@ -50,8 +49,13 @@ const CreateForm = Form.create()(props => {
   };
   const vFormTest = (index) => {
     const moldInitV = {};
-    if (modalLenght[index].id && modalLenght[index].id.length) {
-      moldInitV.initialValue = itemData.id;
+
+    if (modalLenght[index].id && itemData.apsInventories) {
+      let val = '';
+      if (itemData.apsInventories[index]) {
+        val = itemData.apsInventories[index].id + '_' + itemData.apsInventories[index].unit;
+      }
+      moldInitV.initialValue = val;
     }
     return moldInitV;
   };
@@ -60,7 +64,7 @@ const CreateForm = Form.create()(props => {
     <Modal
       destroyOnClose
       width={960}
-      title="新增产品BOM"
+      title={itemData.id ? '修改产品BOM' : '新增产品BOM'}
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
@@ -72,6 +76,7 @@ const CreateForm = Form.create()(props => {
         <Col span={12}>
           <FormItem key="name" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="产品名称">
             {form.getFieldDecorator('id', {
+              initialValue: itemData.id,
               rules: [{ required: true, message: '请选择产品名称！' }],
             })(<Select style={{ width: '100%' }} showSearch>
               {
@@ -89,9 +94,9 @@ const CreateForm = Form.create()(props => {
           return (
             <div key={index}>
               <Col span={12}>
-                <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="料品编码">
+                <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="料品名称">
                   {form.getFieldDecorator(`proId${index}`, {
-                    rules: [{ required: true, message: '请选择料品编码' }],
+                    rules: [{ required: true, message: '请选择料品名称' }],
                     ...vFormTest(index),
                   })(
                     <Select style={{ width: '100%' }} onChange={(e) => inputChange(index, 'id', e)}
@@ -110,7 +115,7 @@ const CreateForm = Form.create()(props => {
                 <FormItem key="type" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="数量">
                   {form.getFieldDecorator(`num${index}`, {
                     rules: [{ required: true, message: '请输入数量' }],
-                    initialValue: item.proNum || '',
+                    initialValue: item.num || '',
                   })(<Input maxLength={7} type='number' onChange={(e) => inputChange(index, 'num', e.target.value)}
                             addonAfter={item.unit} placeholder="请输入数量"/>)}
                   {
@@ -173,16 +178,22 @@ class BomList extends PureComponent {
         {
           title: '配置产品编码',
           dataIndex: 'street1',
+          render: (t, rows) => {
+            return rows.apsInventories.map(item => {
+              return <Tag color={'green'} key={item.id}>{item.serialNum}</Tag>;
+            });
+          },
         },
         {
           title: '数量',
           dataIndex: 'num',
+          render: (t, rows) => {
+            return rows.apsInventories.map(item => {
+              return <Tag color={'geekblue'} key={item.id}>{item.num}</Tag>;
+            });
+          },
         },
       ],
-    },
-    {
-      title: '规格',
-      dataIndex: 'specification',
     },
     {
       title: '类型',
@@ -201,12 +212,21 @@ class BomList extends PureComponent {
       title: '创建人',
       dataIndex: 'createName',
     },
+    {
+      title: '操作',
+      render: (text, record) => <a onClick={() => this.handleModalVisible(true, record)}>编辑</a>,
+    },
   ];
 
   componentDidMount () {
     const { dispatch } = this.props;
+    const { pagination } = this.state;
     dispatch({
       type: 'boms/fetch',
+      payload: {
+        pageNum: pagination.current,
+        pageSize: pagination.pageSize,
+      },
     });
 
     const that = this;
@@ -297,10 +317,19 @@ class BomList extends PureComponent {
   };
 
   // 显示隐藏弹框
-  handleModalVisible = flag => {
+  handleModalVisible = (flag, item = {}) => {
+    const modalLenght = [];
+    item.apsInventories && item.apsInventories.map((aps) => {
+      modalLenght.push({
+        id: aps.id,
+        num: aps.num,
+        unit: aps.unit,
+      });
+    });
     this.setState({
-      modalLenght: [{ id: '', num: '', unit: '' }],
+      itemData: item,
       modalVisible: !!flag,
+      modalLenght: modalLenght.length > 0 ? modalLenght : [{ id: '', num: '', unit: '' }],
     });
   };
 
@@ -320,9 +349,10 @@ class BomList extends PureComponent {
       type: isAdd ? 'boms/add' : 'boms/update',
       payload: isAdd
         ? Object.assign(fields, { availableNum: fields.num })
-        : Object.assign(itemData, fields),
+        : Object.assign(fields, { id: itemData.id }),
       callback: response => {
         if (response.code === 200) {
+          form.resetFields();
           message.success(isAdd ? '添加成功' : '更新成功');
           this.handleModalVisible();
           this.handleStandardTableChange(pagination);
@@ -331,18 +361,37 @@ class BomList extends PureComponent {
         }
       },
     });
+  };
 
-    console.log(fields);
-    // const { dispatch } = this.props;
-    // dispatch({
-    //   type: 'boms/add',
-    //   payload: {
-    //     desc: fields.desc,
-    //   },
-    // });
-    //
-    // message.success('添加成功');
-    // this.handleModalVisible();
+  queryAllProduct = (record, index) => {
+    const { apsInventories } = record;
+    const proColumns = [
+      {
+        title: '产品名称',
+        dataIndex: 'name',
+      },
+      {
+        title: '产品编号',
+        dataIndex: 'id',
+      },
+      {
+        title: '配置产品编码',
+        dataIndex: 'serialNum',
+        render: (t, rows) => {
+          return <Tag color={'green'} key={rows.id}>{rows.serialNum}</Tag>;
+        },
+      },
+      {
+        title: '数量',
+        dataIndex: 'num',
+        render: (t, rows) => {
+          return <Tag color={'geekblue'} key={rows.id}>{rows.num}</Tag>;
+        },
+      },
+    ];
+    return <Table rowKey={`proTable${index}`} size={'small'} dataSource={apsInventories} pagination={false}
+                  bordered={false}
+                  columns={proColumns}/>;
   };
 
   render () {
@@ -378,6 +427,7 @@ class BomList extends PureComponent {
               loading={loading}
               data={data}
               columns={this.columns}
+              expandedRowRender={record => this.queryAllProduct(record)}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}
             />

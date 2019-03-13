@@ -11,6 +11,20 @@ class CreateForm extends PureComponent {
 
   state = {
     addShifList: [{ index: '0', name: '', startTime: '', endTime: '' }],
+    startValue: null,
+    endValue: null,
+  };
+  onChange = (field, value) => {
+    this.setState({
+      [field]: value,
+    });
+  };
+  onStartChange = (value) => {
+    this.onChange('startValue', value);
+  };
+
+  onEndChange = (value) => {
+    this.onChange('endValue', value);
   };
 
   render () {
@@ -92,6 +106,23 @@ class CreateForm extends PureComponent {
       return minutes;
 
     };
+
+    const disabledStartDate = (startValue) => {
+      const endValue = this.state.endValue;
+      if (!startValue || !endValue) {
+        return false;
+      }
+      return startValue.valueOf() > endValue.valueOf();
+    };
+
+    const disabledEndDate = (endValue) => {
+      const startValue = this.state.startValue;
+      if (!endValue || !startValue) {
+        return false;
+      }
+      return endValue.valueOf() <= startValue.valueOf();
+    };
+
     return (
       <Modal
         destroyOnClose
@@ -198,11 +229,25 @@ class CreateForm extends PureComponent {
             </FormItem>
           </Col>
           <Col span={12}>
+            <FormItem key="num" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="开始日期">
+              {form.getFieldDecorator('startDate', {
+                initialValue: itemData.startDate ? moment(itemData.startDate) : null,
+                rules: [{ required: true }],
+              })(<DatePicker format="YYYY-MM-DD"
+                             disabledDate={disabledStartDate}
+                             onChange={this.onStartChange}
+                             style={{ width: '100%' }}/>)}
+            </FormItem>
+          </Col>
+          <Col span={12}>
             <FormItem key="num" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="截止日期">
               {form.getFieldDecorator('endDate', {
                 initialValue: itemData.endDate ? moment(itemData.endDate) : null,
                 rules: [{ required: true }],
-              })(<DatePicker format="YYYY-MM-DD" style={{ width: '100%' }}/>)}
+              })(<DatePicker format="YYYY-MM-DD"
+                             disabledDate={disabledEndDate}
+                             onChange={this.onEndChange}
+                             style={{ width: '100%' }}/>)}
             </FormItem>
           </Col>
           <Col span={12}>

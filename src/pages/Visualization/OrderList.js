@@ -204,35 +204,35 @@ class OrderList extends PureComponent {
     {
       title: '产品编号',
       dataIndex: 'productNo',
-      render(text, rows) {
+      render (text, rows) {
         return rows.productList ? rows.productList[0].serialNum : '';
       },
     },
     {
       title: '产品名称',
       dataIndex: 'productName',
-      render(text, rows) {
+      render (text, rows) {
         return rows.productList ? rows.productList[0].name : '';
       },
     },
     {
       title: '需求数量',
       dataIndex: 'productAmount',
-      render(text, rows) {
+      render (text, rows) {
         return rows.productList ? rows.productList[0].amount : '';
       },
     },
     {
       title: '现有库存',
       dataIndex: 'productNum',
-      render(text, rows) {
+      render (text, rows) {
         return rows.productList ? rows.productList[0].num : '';
       },
     },
     {
       title: '供需差额',
       dataIndex: 'num',
-      render(text, rows) {
+      render (text, rows) {
         const { amount = 0, num = 0 } = rows.productList;
         return amount > num ? amount - num : 0;
       },
@@ -244,7 +244,7 @@ class OrderList extends PureComponent {
     {
       title: '距交期天数',
       dataIndex: 'deliveryDiff',
-      render(text) {
+      render (text) {
         const deliDate = moment(text);
         const nowDate = moment();
         return deliDate.diff(nowDate, 'day');
@@ -257,13 +257,13 @@ class OrderList extends PureComponent {
     {
       title: '状态',
       dataIndex: 'status',
-      render(t = 2) {
+      render (t = 2) {
         return ['未排程', '已排程', ''][t];
       },
     },
   ];
 
-  componentDidMount() {
+  componentDidMount () {
     const { dispatch } = this.props;
     const { pagination } = this.state;
     dispatch({
@@ -278,7 +278,7 @@ class OrderList extends PureComponent {
     dispatch({
       type: 'resource/fetchBrief',
       payload: { type: 2 },
-      callback(response) {
+      callback (response) {
         const { data, code } = response;
         code == '200' && that.setState({ resourceList: data });
       },
@@ -319,7 +319,7 @@ class OrderList extends PureComponent {
     dispatch({
       type: 'resource/fetchRouter',
       payload: { id: proId },
-      callback(response) {
+      callback (response) {
         const { data, code } = response;
         code == '200' && that.setState({ craftRouteList: data });
       },
@@ -345,7 +345,7 @@ class OrderList extends PureComponent {
 
     dispatch({
       type: 'order/orderProgress',
-      callback(response) {
+      callback (response) {
         const { data } = response;
         if (data.isFinish) {
           clearInterval(interval);
@@ -387,7 +387,7 @@ class OrderList extends PureComponent {
       payload: {
         ...fields,
       },
-      callback(resp) {
+      callback (resp) {
         const { pagination } = that.state;
         if (resp.code === 200) {
           message.success('添加成功');
@@ -410,6 +410,7 @@ class OrderList extends PureComponent {
     this.setState({
       scheduleType: 1,
       orderIds: [],
+      selectedRows: [],
       draVisible: false,
     });
   };
@@ -459,18 +460,18 @@ class OrderList extends PureComponent {
     dispatch({
       type: 'order/schedule',
       payload: { type: scheduleType, orderIds: orderIds.toString() },
-      callback(response) {
+      callback (response) {
         const { code } = response;
         if (code === 200) {
           interval = setInterval(() => {
             // 3秒请求是否排程完成
             dispatch({
               type: 'order/orderProgress',
-              callback(response) {
+              callback (response) {
                 const { data } = response;
                 if (data.isFinish) {
                   clearInterval(interval);
-                  that.setState({ interval: null, resultList: data.result });
+                  that.setState({ interval: null, resultList: data.result, scheVisible: false, progress: 100 });
                 }
               },
             });
@@ -483,6 +484,34 @@ class OrderList extends PureComponent {
     });
   };
 
+  scheVisibleOptimize = (v) => {
+    const { dispatch } = this.props;
+    let interval = null;
+    const timeout = setTimeout(() => {
+      this.setState({ progress: 50 });
+      clearTimeout(timeout);
+    }, 1200);
+    this.setState({ scheVisible: v });
+
+    const that = this;
+
+    interval = setInterval(() => {
+      // 3秒请求是否排程完成
+      dispatch({
+        type: 'order/orderProgress',
+        callback (response) {
+          const { data } = response;
+          if (data.isFinish) {
+            clearInterval(interval);
+            console.log(that.state.scheVisible);
+            that.setState({ interval: null, resultList: data.result, scheVisible: false, progress: 100 });
+          }
+        },
+      });
+    }, 3000);
+
+  };
+
   clearScheVisible = () => {
 
     const { dispatch } = this.props;
@@ -491,7 +520,7 @@ class OrderList extends PureComponent {
     // 取消订单排程
     dispatch({
       type: 'order/orderCancel',
-      callback(response) {
+      callback (response) {
         const { code } = response;
         clearInterval(interval);
         that.setState({ scheVisible: false, progress: 0, interval: null });
@@ -502,8 +531,8 @@ class OrderList extends PureComponent {
     });
   };
 
-  render() {
-    const { order: { data }, loading } = this.props;
+  render () {
+    const { order: { data }, loading, dispatch } = this.props;
     const { selectedRows, proList, orderIds, modalVisible, progress, draVisible, resourceList, craftRouteList, scheVisible, resultList } = this.state;
     const parentMethods = {
       proList,
@@ -568,7 +597,11 @@ class OrderList extends PureComponent {
           destroyOnClose
           onClose={this.onClose}
         >
-          <OrderProduction orderIds={orderIds} dataList={resultList} onClose={this.onClose}/>
+          <OrderProduction orderIds={orderIds}
+                           dispatch={dispatch}
+                           scheVisibleOptimize={this.scheVisibleOptimize}
+                           dataList={resultList}
+                           onClose={this.onClose}/>
         </Drawer>
         <Modal title="任务排产中" visible={scheVisible} footer={null} closable={false} maskClosable={false}>
           <div style={{ textAlign: 'center' }}>

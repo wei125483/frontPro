@@ -1,13 +1,12 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import {
-  Card,
-  Form,
-} from 'antd';
-import StandardTable from '@/components/StandardTable';
+import { Card, Form, Table } from 'antd';
+import moment from 'moment';
+
+const { RangePicker } = DatePicker;
 
 import styles from './index.less';
-import moment from 'moment/moment';
+import { DatePicker } from 'antd/lib/index';
 
 const getValue = obj =>
   Object.keys(obj)
@@ -19,62 +18,91 @@ const getValue = obj =>
   loading: loading.models.moldl,
 }))
 @Form.create()
-class MouldList extends PureComponent {
+class FeedingList extends PureComponent {
   state = {
+    dateList: [],
+    baseList: [],
+    timeColumns: [],
+    timeDataList: [],
     formValues: {
-      startDate: '1970-01-01',
-      endDate: moment(new Date()).format('YYYY-MM-DD'),
+      startDate: moment().format('YYYY-MM-DD'),
+      endDate: moment().subtract(-30, 'days').format('YYYY-MM-DD'),
     },
   };
 
-  columns = [
-    {
-      title: '模具',
-      dataIndex: 'name',
-    },
-    {
-      title: '01/01',
-      dataIndex: 'desc',
-    },
-    {
-      title: '01/01',
-      dataIndex: 'street1',
-    }, {
-      title: '01/01',
-      dataIndex: 'street',
-    },
-    {
-      title: '01/01',
-      dataIndex: 'callNo1',
-      render: val => `${val} 万`,
-    },
-    {
-      title: '01/01',
-      dataIndex: 'callNo',
-      render: val => `${val} 万`,
-    },
-    {
-      title: '01/01',
-      dataIndex: 'updatedAt',
-    },
-    {
-      title: '01/01',
-      dataIndex: 'desc2',
-    },
-  ];
-
   componentDidMount () {
-    const { dispatch } = this.props;
+    this.dispathFetch();
+  }
+
+  componentDidUpdate (prevProps) {
+    const { moldl: { data: dataList } } = prevProps;
+    const { dateList } = this.state;
+    const { data = [], dates = [] } = dataList.list || {};
+    const columns = [];
+    const taskList = [];
+    if (dates.length > 0 && dates != dateList) {
+      dates.map(item => {
+        columns.push({
+          title: item,
+          dataIndex: `date${item}`,
+          align: 'center',
+          width: '100px',
+          render: (t) => {
+            return (<div style={{ minWidth: '100px' }}>{t ? t.num : ''}</div>);
+          },
+        });
+      });
+
+      data.map(item => {
+        const rows = {};
+        item.apsMoldLoads.map((task) => {
+          const date = task.workDate;
+          rows[`date${date}`] = {
+            date,
+            num: task.workTime,
+            childs: [{ date: date, num: task.workTime }],
+          };
+        });
+        taskList.push({ ...rows, id: item.id, name: item.name });
+      });
+
+      const initColumns = [
+        {
+          title: '序号',
+          width: '100px',
+          dataIndex: 'id',
+          render: (t) => {
+            return (<div style={{ minWidth: '100px' }}>{t}</div>);
+          },
+        },
+        {
+          title: '模具',
+          width: '100px',
+          dataIndex: 'name',
+          render: (t) => {
+            return (<div style={{ minWidth: '100px' }}>{t}</div>);
+          },
+        },
+      ];
+      this.setState({ dateList: dates, timeColumns: [...initColumns, ...columns], timeDataList: taskList });
+
+    }
+  }
+
+  dispathFetch () {
     const { formValues } = this.state;
+    this.getFormValues(formValues);
+  }
+
+  getFormValues (values) {
+    const { dispatch } = this.props;
     dispatch({
       type: 'moldl/fetch',
-      payload: {
-        ...formValues,
-      },
+      payload: { ...values },
     });
   }
 
-  handleStandardTableChange = (pagination, filtersArg = [], sorter = {}) => {
+  handleStandardTableChange = (pagination, filtersArg, sorter) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
 
@@ -95,27 +123,35 @@ class MouldList extends PureComponent {
     }
 
     dispatch({
-      type: 'moldl/fetch',
+      type: 'rule/fetch',
       payload: params,
     });
   };
 
   render () {
-    const {
-      moldl: { data },
-      loading,
-    } = this.props;
+    const { loading } = this.props;
+    const { formValues, timeDataList, timeColumns } = this.state;
+    const onChange = (dateString) => {
+      const values = { ...formValues };
+      values.startDate = dateString[0];
+      values.endDate = dateString[1];
+      this.getFormValues(values);
+    };
     return (
       <div>
         <Card bordered={false}>
+          <div className={styles.search}>
+            <span>筛选日期：</span>
+            <RangePicker
+              defaultValue={[moment(formValues.startDate), moment(formValues.endDate)]}
+              onChange={(e, dateString) => onChange(dateString)}/>
+            <br/>
+            <br/>
+          </div>
           <div className={styles.tableList}>
-            <StandardTable
-              rowSelection={null}
-              selectedRows={[]}
-              loading={loading}
-              data={data}
-              columns={this.columns}
-            />
+            <Table pagination={false} columns={timeColumns} loading={loading}
+                   scroll={{ x: 1200 }}
+                   dataSource={timeDataList}/>
           </div>
         </Card>
       </div>
@@ -123,4 +159,4 @@ class MouldList extends PureComponent {
   }
 }
 
-export default MouldList;
+export default FeedingList;

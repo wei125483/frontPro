@@ -5,6 +5,7 @@ import {
   scheduleCancel,
   queryOrderProgress,
   scheduleExecute,
+  queryOrderAllList,
   scheduleOptimize,
 } from '@/services/api';
 import moment from 'moment';
@@ -20,7 +21,7 @@ export default {
   },
 
   effects: {
-    * fetch({ payload }, { call, put }) {
+    * fetch ({ payload }, { call, put }) {
       const response = yield call(queryOrderList, payload);
       const resData = {
         list: response.data.list || [],
@@ -43,37 +44,50 @@ export default {
         payload: resData,
       });
     },
-    * add({ payload, callback }, { call, put }) {
+    * all ({ payload, callback }, { call, put }) {
+      const response = yield call(queryOrderAllList, payload);
+      yield put({
+        type: 'appendList',
+        payload: response.data,
+      });
+    },
+    * add ({ payload, callback }, { call, put }) {
       const response = yield call(addOrder, payload);
       if (callback) callback(response);
     },
-    * schedule({ payload, callback }, { call }) {
+    * schedule ({ payload, callback }, { call }) {
       const response = yield call(scheduleOrder, payload);
       if (callback) callback(response);
     },
-    * orderCancel({ payload, callback }, { call }) {
+    * orderCancel ({ payload, callback }, { call }) {
       const response = yield call(scheduleCancel, payload);
       if (callback) callback(response);
     },
-    * orderProgress({ payload, callback }, { call }) {
+    * orderProgress ({ payload, callback }, { call }) {
       const response = yield call(queryOrderProgress, payload);
       if (callback) callback(response);
     },
-    * optimize({ payload, callback }, { call }) {
+    * optimize ({ payload, callback }, { call }) {
       const response = yield call(scheduleOptimize, payload);
       if (callback) callback(response);
     },
-    * orderExecute({ payload, callback }, { call }) {
+    * orderExecute ({ payload, callback }, { call }) {
       const response = yield call(scheduleExecute, payload);
       if (callback) callback(response);
     },
   },
 
   reducers: {
-    save(state, action) {
+    save (state, action) {
       return {
         ...state,
         data: action.payload,
+      };
+    },
+    appendList (state, action) {
+      return {
+        ...state,
+        list: action.payload,
       };
     },
   },
